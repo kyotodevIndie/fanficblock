@@ -148,6 +148,8 @@ derrubam por falta de informação.
 | `query.js` | Gerador de query de busca do LinkedIn (AND/OR/NOT) do painel |
 | `support.js` / `icons/pix-qr.svg` | Pix do card de apoio, gerados por `tools/pix.py` |
 | `tools/pix.py` | Gera o Pix: `pip install segno` e `python3 tools/pix.py --key ... --name ... --city ...` |
+| `tools/pack.sh` | Gera o .zip das lojas em `dist/` (roda os testes antes) |
+| `store/` | Ficha das lojas (`LISTING.md`), imagens e `assets.html`, que gera as imagens com `tools/store-assets.sh` |
 | `content.js` | Encontra os posts, extrai texto/autor/cabeçalho, esconde |
 | `content.css` | Barrinha "Mostrar" e etiqueta de motivo no feed |
 | `popup.html` / `popup.css` / `popup.js` | Painel (shadcn, zinc escuro) |

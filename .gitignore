@@ -6,6 +6,8 @@ fanficblock-posts-*.json
 *.png
 !icons/*.png
 !docs/*.png
+!store/*.png
+!store/img/*.png
 
 # Sistema e editores
 .DS_Store
@@ -14,3 +16,6 @@ Thumbs.db
 .idea/
 __pycache__/
 *.zip
+
+# Pacote das lojas (tools/pack.sh)
+dist/

@@ -7,6 +7,7 @@
 <style>
   html, body { margin: 0; background: #18181b; }
   iframe { display: block; width: 392px; height: 1400px; margin: 24px auto; border: 0; }
+  /* ?h=4000: iframe mais alto, para print do painel inteiro */
 </style>
 <iframe id="popup"></iframe>
 <script>
@@ -15,10 +16,13 @@
     let localStore = {};
     // ?demo: números de exemplo no Fanficômetro (para o print do README).
     if (parent.location.search.includes("demo")) {
+      // Sem animação: o print não pega switch no meio da transição.
+      document.head.insertAdjacentHTML("beforeend", "<style>*{transition:none!important}</style>");
       const day = (n) => new Date(Date.now() - n * 864e5).toLocaleDateString("sv-SE");
       const cats = { notJob: 61, fluff: 23, bait: 17, ads: 12, course: 9, repost: 6, blocked: 3, jobFilter: 6 };
       const days = { [day(0)]: { total: 42, cats: {} }, [day(1)]: { total: 31, cats: {} }, [day(3)]: { total: 25, cats: {} } };
       localStore.jfStats = { total: 137, cats, days, seen: [] };
+      localStore.jfQuery = { lang: "pt", techs: ["react", "node"], techMode: "any", seniority: "mid", modality: "remote", contract: "", location: "", exclude: ["intern"] };
     }
     window.chrome = {
       storage: {
@@ -35,6 +39,8 @@
       tabs: { query: async () => [{ id: 1 }], sendMessage: async () => { throw new Error("prévia"); } }
     };
   <\/script>`;
+  const h = new URLSearchParams(location.search).get("h");
+  if (h) document.getElementById("popup").style.height = `${h}px`;
   fetch("/popup.html").then((r) => r.text()).then((html) => {
     document.getElementById("popup").srcdoc = html
       .replace("<head>", '<head><base href="/">')
