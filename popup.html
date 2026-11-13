@@ -103,8 +103,10 @@
         <button type="button" role="switch" class="switch" data-setting="hideEnglish" aria-label="Esconder vagas em inglês"></button>
       </div>
 
+      <details class="advanced">
+        <summary>Opções avançadas <span class="muted" id="advanced-count"></span></summary>
+        <p class="muted hint">Quanto mais filtros, menos vagas. Use com sabedoria 🧙</p>
       <div class="item">
-        <div class="separator"></div>
         <div class="label">Não mostrar</div>
         <div class="muted hint">Marcado = some. "CLT ou PJ" só some com os dois marcados.</div>
         <!-- Preenchido a partir de JF_FACETS (classify.js) -->
@@ -123,9 +125,6 @@
         <div class="muted hint">Separadas por vírgula. "node" também pega Node.js; C#, C++ e React Native funcionam.</div>
         <input id="mustHave" class="input" data-list="mustHave" data-sep="," placeholder="react, typescript">
       </div>
-      <details class="advanced">
-        <summary>Opções avançadas <span class="muted" id="advanced-count"></span></summary>
-        <p class="muted hint">Quanto mais filtros, menos vagas. Use com sabedoria 🧙</p>
       <div class="item">
         <label class="label" for="mustNotHave">Não pode ter</label>
         <div class="muted hint">Vaga com qualquer uma destas some</div>

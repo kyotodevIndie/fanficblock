@@ -69,9 +69,10 @@ function render() {
 // para ver que tem coisa filtrando mesmo com o bloco fechado.
 function advancedActive() {
   const switches = ["requireLocation", "requireSalary", "hideIncomplete"].filter((k) => settings[k]).length;
-  const lists = ["mustNotHave", "locations", "blockedCompanies", "allowedCompanies"].filter((k) => (settings[k] || []).length).length;
+  const lists = ["mustHave", "mustNotHave", "locations", "blockedCompanies", "allowedCompanies"].filter((k) => (settings[k] || []).length).length;
   const numbers = ["minSalary", "maxExperience"].filter((k) => Number(settings[k]) > 0).length;
-  return switches + lists + numbers;
+  const facets = Object.values(settings.exclude || {}).filter((ids) => ids.length).length;
+  return switches + lists + numbers + facets;
 }
 
 // Switches que são filtro (não contam "Ativado", "Mostrar motivo"...).
