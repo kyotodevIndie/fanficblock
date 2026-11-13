@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>FanficBlock</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="header">
+    <img class="logo" src="icons/icon-48.png" alt="" width="32" height="32">
+    <div class="brand">
+      <div class="title-row"><h1>FanficBlock</h1><span class="version" id="version"></span></div>
+      <p class="muted" id="active-count">Chega de fanfic corporativa.</p>
+    </div>
+    <button type="button" role="switch" class="switch" data-setting="enabled" aria-label="Ativado"></button>
+  </header>
+
+  <input id="search" class="input search" type="search" placeholder="Buscar configuração..." aria-label="Buscar configuração">
+  <p id="no-results" class="muted empty" hidden>Nenhuma configuração encontrada.</p>
+
+  <main id="body">
+    <!-- 1. Geral -->
+    <details class="card section" open>
+      <summary>Geral</summary>
+      <div class="item row">
+        <div>
+          <div class="label">Só vagas</div>
+          <div class="muted">Esconde tudo que não for vaga de emprego</div>
+        </div>
+        <button type="button" role="switch" class="switch" data-setting="onlyJobs" aria-label="Só vagas"></button>
+      </div>
+      <div class="item row">
+        <div>
+          <div class="label">Post escondido</div>
+          <div class="muted">Oculto some de vez. Recolhido deixa uma barrinha com "Mostrar"</div>
+        </div>
+        <div class="segmented" data-setting="mode">
+          <button type="button" data-value="hide">Oculto</button>
+          <button type="button" data-value="collapse">Recolhido</button>
+        </div>
+      </div>
+      <div class="item">
+        <label class="label" for="export-limit">Exportar posts do feed</label>
+        <p class="muted hint">Baixa os posts carregados na aba, com o motivo de cada um ficar ou sumir. Bom para entender o filtro ou reportar um erro.</p>
+        <div class="actions">
+          <select id="export-limit" class="input">
+            <option value="10">10 posts</option>
+            <option value="30" selected>30 posts</option>
+            <option value="50">50 posts</option>
+            <option value="100">100 posts</option>
+            <option value="0">Todos carregados</option>
+          </select>
+          <div class="segmented" id="export-format">
+            <button type="button" data-value="md" aria-pressed="true">.md</button>
+            <button type="button" data-value="json" aria-pressed="false">.json</button>
+          </div>
+          <button type="button" id="export" class="btn btn-outline span-2">Baixar</button>
+        </div>
+      </div>
+    </details>
+
+    <!-- 2. Estatísticas -->
+    <details class="card section" open>
+      <summary>Estatísticas <span class="muted" id="stats-badge"></span></summary>
+      <div class="item">
+        <div class="label">Fanficômetro 📊</div>
+        <p class="muted hint" id="stats-headline"></p>
+        <div class="stat-grid">
+          <div class="stat"><div class="stat-value" id="stat-today">0</div><div class="muted">hoje</div></div>
+          <div class="stat"><div class="stat-value" id="stat-week">0</div><div class="muted">7 dias</div></div>
+          <div class="stat"><div class="stat-value" id="stat-total">0</div><div class="muted">total</div></div>
+        </div>
+        <div class="stat-time"><span class="muted">Tempo poupado de fanfic</span><strong id="stat-time">0 s</strong></div>
+        <div id="stat-cats" class="stat-cats"></div>
+        <p class="muted hint">Estimativa: 8 s por post escondido (ler o começo e rolar). Só números ficam salvos, nunca o texto dos posts. Guarda os últimos 30 dias.</p>
+        <button type="button" id="stats-reset" class="btn btn-outline wide-btn">Zerar estatísticas</button>
+      </div>
+    </details>
+
+    <!-- 3. Vagas -->
+    <details class="card section" id="jobs" open>
+      <summary>Vagas</summary>
+      <p class="muted section-note" id="jobs-note">Valem com "Só vagas" ligado.</p>
+      <div class="item row">
+        <div>
+          <div class="label">Só recrutadores</div>
+          <div class="muted">Quem postou precisa ser de R&amp;S no título do perfil</div>
+        </div>
+        <button type="button" role="switch" class="switch" data-setting="recruitersOnly" aria-label="Só recrutadores"></button>
+      </div>
+      <div class="item row">
+        <div>
+          <div class="label">Só tecnologia</div>
+          <div class="muted">Dev, dados, QA, cloud, produto...</div>
+        </div>
+        <button type="button" role="switch" class="switch" data-setting="techOnly" aria-label="Só tecnologia"></button>
+      </div>
+      <div class="item row">
+        <div>
+          <div class="label">Esconder vagas em inglês</div>
+          <div class="muted">Pela quantidade de palavras comuns em inglês</div>
+        </div>
+        <button type="button" role="switch" class="switch" data-setting="hideEnglish" aria-label="Esconder vagas em inglês"></button>
+      </div>
+
+      <div class="item">
+        <div class="separator"></div>
+        <div class="label">Não mostrar</div>
+        <div class="muted hint">Marcado = some. "CLT ou PJ" só some com os dois marcados.</div>
+        <!-- Preenchido a partir de JF_FACETS (classify.js) -->
+        <div id="facets"></div>
+      </div>
+
+      <div class="item">
+        <div class="separator"></div>
+        <div class="inline">
+          <label class="label" for="mustHave">Precisa ter</label>
+          <div class="segmented" data-setting="mustHaveMode">
+            <button type="button" data-value="any">Pelo menos uma</button>
+            <button type="button" data-value="all">Todas</button>
+          </div>
+        </div>
+        <div class="muted hint">Separadas por vírgula. "node" também pega Node.js; C#, C++ e React Native funcionam.</div>
+        <input id="mustHave" class="input" data-list="mustHave" data-sep="," placeholder="react, typescript">
+      </div>
+      <details class="advanced">
+        <summary>Opções avançadas <span class="muted" id="advanced-count"></span></summary>
+        <p class="muted hint">Quanto mais filtros, menos vagas. Use com sabedoria 🧙</p>
+      <div class="item">
+        <label class="label" for="mustNotHave">Não pode ter</label>
+        <div class="muted hint">Vaga com qualquer uma destas some</div>
+        <input id="mustNotHave" class="input" data-list="mustNotHave" data-sep="," placeholder="php, delphi">
+      </div>
+
+      <div class="item">
+        <div class="separator"></div>
+        <label class="label" for="locations">Localização</label>
+        <div class="muted hint">Cidades, estados, países ou regiões, por vírgula. "SP" aceita Barueri; vaga remota vale pelo país. Vaga sem local fica.</div>
+        <input id="locations" class="input" data-list="locations" data-sep="," placeholder="SP, Curitiba, Brasil">
+      </div>
+      <div class="item row">
+        <div>
+          <div class="label">Esconder vaga sem localização</div>
+          <div class="muted">Vaga que não diz cidade nem "remoto"</div>
+        </div>
+        <button type="button" role="switch" class="switch" data-setting="requireLocation" aria-label="Esconder vaga sem localização"></button>
+      </div>
+
+      <div class="item row">
+        <div>
+          <div class="label">Só com salário informado</div>
+          <div class="muted">"A combinar" não conta. Vale-refeição também não 😅</div>
+        </div>
+        <button type="button" role="switch" class="switch" data-setting="requireSalary" aria-label="Só com salário informado"></button>
+      </div>
+      <div class="item">
+        <div class="inline">
+          <label class="label" for="minSalary">Salário mínimo por mês</label>
+          <input id="minSalary" class="input number wide" type="number" min="0" step="500" data-number="minSalary">
+        </div>
+        <div class="inline">
+          <span class="muted">Moeda</span>
+          <div class="segmented" data-setting="salaryCurrency">
+            <button type="button" data-value="BRL">R$</button>
+            <button type="button" data-value="USD">US$</button>
+            <button type="button" data-value="EUR">€</button>
+          </div>
+        </div>
+        <div class="muted hint">0 = desligado. Anual vira mensal (÷12). Outra moeda não é comparada, porque precisaria de cotação. Vaga sem salário fica.</div>
+      </div>
+
+      <div class="item">
+        <div class="inline">
+          <label class="label" for="maxExperience">Máximo de anos de experiência</label>
+          <input id="maxExperience" class="input number" type="number" min="0" max="30" data-number="maxExperience">
+        </div>
+        <div class="muted hint">Some se a vaga pedir mais. 0 = desligado. Só conta quando a vaga diz o número.</div>
+      </div>
+
+      <div class="item">
+        <div class="separator"></div>
+        <label class="label" for="blockedCompanies">Empresas bloqueadas</label>
+        <div class="muted hint">Vaga que cita a empresa some. Uma por linha.</div>
+        <textarea id="blockedCompanies" class="input short" data-list="blockedCompanies" placeholder="Empresa Fantasma S.A."></textarea>
+      </div>
+      <div class="item">
+        <label class="label" for="allowedCompanies">Empresas favoritas</label>
+        <div class="muted hint">Vaga que cita a empresa passa pelos filtros de vaga.</div>
+        <textarea id="allowedCompanies" class="input short" data-list="allowedCompanies" placeholder="Empresa dos Sonhos"></textarea>
+      </div>
+
+      <div class="item row">
+        <div>
+          <div class="label">Esconder vaga sem informação</div>
+          <div class="muted">Precisa de 2 entre local, contratação, senioridade, salário e link de candidatura</div>
+        </div>
+        <button type="button" role="switch" class="switch" data-setting="hideIncomplete" aria-label="Esconder vaga sem informação"></button>
+      </div>
+      <div class="item row">
+        <div>
+          <div class="label">Marcar vaga repetida</div>
+          <div class="muted">Etiqueta quando o mesmo texto aparece de novo. Não quer dizer que a vaga é fantasma.</div>
+        </div>
+        <button type="button" role="switch" class="switch" data-setting="flagDuplicates" aria-label="Marcar vaga repetida"></button>
+      </div>
+
+      <div class="item" id="query-builder">
+        <div class="separator"></div>
+        <div class="label">Gerador de busca 🔎</div>
+        <div class="muted hint">Monta a busca do LinkedIn com as opções abaixo. "Aplicar" coloca no campo de pesquisa: é só apertar Enter.</div>
+        <div class="warning" role="note">
+          ⚠️ Quanto mais opções, mais específica a busca e <strong>menos vagas</strong> aparecem. Use com sabedoria 🧙
+          <span id="q-level"></span>
+        </div>
+        <!-- Opções preenchidas a partir de JF_QUERY_OPTIONS (query.js) -->
+        <div class="q-grid">
+          <label class="q-field"><span class="muted">Idioma da vaga</span><select class="input" data-q="lang"></select></label>
+          <label class="q-field"><span class="muted">Senioridade</span><select class="input" data-q="seniority"></select></label>
+          <label class="q-field"><span class="muted">Modelo</span><select class="input" data-q="modality"></select></label>
+          <label class="q-field"><span class="muted">Contratação</span><select class="input" data-q="contract"></select></label>
+          <label class="q-field wide"><span class="muted">Local</span><select class="input" data-q="location"></select></label>
+        </div>
+        <div class="q-multi">
+          <div class="inline">
+            <label class="muted" for="q-techs-add">Tecnologias</label>
+            <div class="segmented" data-q-mode="techMode">
+              <button type="button" data-value="any">Qualquer uma</button>
+              <button type="button" data-value="all">Todas</button>
+            </div>
+          </div>
+          <select id="q-techs-add" class="input" data-q-add="techs" data-q-field="tech"></select>
+          <div class="chips" data-q-chips="techs" data-q-field="tech"></div>
+        </div>
+        <div class="q-multi">
+          <label class="muted" for="q-exclude-add">Sem (NOT)</label>
+          <select id="q-exclude-add" class="input" data-q-add="exclude" data-q-field="exclude"></select>
+          <div class="chips" data-q-chips="exclude" data-q-field="exclude"></div>
+        </div>
+        <textarea id="q-output" class="input short mono" readonly aria-label="Busca gerada"></textarea>
+        <div class="actions">
+          <button type="button" id="q-clear" class="btn btn-outline">Limpar</button>
+          <button type="button" id="q-copy" class="btn btn-outline">Copiar</button>
+          <button type="button" id="q-apply" class="btn btn-primary span-2">Aplicar na busca</button>
+        </div>
+      </div>
+      </details>
+    </details>
+
+    <!-- 4. Antifanfic -->
+    <details class="card section" open>
+      <summary>Antifanfic</summary>
+      <div class="item row">
+        <div>
+          <div class="label">Bloquear devaneio</div>
+          <div class="muted">Lição de vida, textão de ego, "não é sobre X, é sobre Y"</div>
+        </div>
+        <button type="button" role="switch" class="switch" data-setting="blockFluff" aria-label="Bloquear devaneio"></button>
+      </div>
+      <div class="item row">
+        <div>
+          <div class="label">Caça-engajamento</div>
+          <div class="muted">"Comenta EU", "marque alguém", "curte e compartilha". Nunca derruba vaga.</div>
+        </div>
+        <button type="button" role="switch" class="switch" data-setting="blockBait" aria-label="Caça-engajamento"></button>
+      </div>
+    </details>
+
+    <!-- 5. Conteúdo -->
+    <details class="card section" open>
+      <summary>Conteúdo</summary>
+      <div class="item row">
+        <div>
+          <div class="label">Posts patrocinados</div>
+          <div class="muted">Esconde anúncio ("Promovido"), até de vaga</div>
+        </div>
+        <button type="button" role="switch" class="switch" data-setting="hideSponsored" aria-label="Posts patrocinados"></button>
+      </div>
+      <div class="item row">
+        <div>
+          <div class="label">Reposts</div>
+          <div class="muted">Esconde "Fulano republicou isso". Repost de vaga fica.</div>
+        </div>
+        <button type="button" role="switch" class="switch" data-setting="hideReposts" aria-label="Reposts"></button>
+      </div>
+      <div class="item row">
+        <div>
+          <div class="label">Vendedor de curso</div>
+          <div class="muted">Curso, mentoria, ebook com preço ou "garanta sua vaga". Conteúdo grátis fica.</div>
+        </div>
+        <button type="button" role="switch" class="switch" data-setting="blockCourses" aria-label="Vendedor de curso"></button>
+      </div>
+      <div class="item">
+        <label class="label" for="blockedDomains">Domínios bloqueados</label>
+        <div class="muted hint">Post com link para estes sites some (subdomínios também). Um por linha.</div>
+        <textarea id="blockedDomains" class="input short" data-list="blockedDomains" placeholder="hotmart.com&#10;bit.ly"></textarea>
+      </div>
+      <div class="item">
+        <label class="label" for="blockedAuthors">Autores e empresas bloqueados</label>
+        <div class="muted hint">Some sempre, até vaga. Um por linha: link do perfil (melhor) ou nome.</div>
+        <textarea id="blockedAuthors" class="input short" data-list="blockedAuthors" placeholder="linkedin.com/in/fulano&#10;linkedin.com/company/acme"></textarea>
+      </div>
+      <div class="item">
+        <label class="label" for="allowedAuthors">Sempre mostrar</label>
+        <div class="muted hint">Passa por cima dos filtros (menos "Esconder sempre se tiver").</div>
+        <textarea id="allowedAuthors" class="input short" data-list="allowedAuthors" placeholder="linkedin.com/in/recrutadora-favorita"></textarea>
+      </div>
+    </details>
+
+    <!-- 6. Avançado -->
+    <details class="card section">
+      <summary>Avançado</summary>
+
+      <div class="item row">
+        <div>
+          <div class="label">Mostrar motivo</div>
+          <div class="muted">Etiqueta em cada post dizendo por que ficou ou sumiu</div>
+        </div>
+        <button type="button" role="switch" class="switch" data-setting="debug" aria-label="Mostrar motivo"></button>
+      </div>
+
+      <div class="item">
+        <label class="label" for="blocklist">Esconder sempre se tiver</label>
+        <div class="muted hint">Ganha de tudo, até de vaga e de "Sempre mostrar"</div>
+        <textarea id="blocklist" class="input short" data-list="blocklist" placeholder="curso&#10;mentoria"></textarea>
+      </div>
+
+      <div class="item">
+        <label class="label" for="strong">Palavras de vaga fortes <span class="muted">(uma basta)</span></label>
+        <textarea id="strong" class="input" data-list="strong"></textarea>
+      </div>
+      <div class="item">
+        <label class="label" for="weak">Palavras de vaga fracas</label>
+        <textarea id="weak" class="input" data-list="weak"></textarea>
+        <div class="inline">
+          <span class="muted">Fracas diferentes necessárias</span>
+          <input id="weakNeeded" class="input number" type="number" min="1" max="10" data-number="weakNeeded">
+        </div>
+      </div>
+      <div class="item">
+        <label class="label" for="recruiterWords">Título de recrutador</label>
+        <textarea id="recruiterWords" class="input" data-list="recruiterWords"></textarea>
+      </div>
+      <div class="item">
+        <label class="label" for="techWords">Palavras de tecnologia</label>
+        <textarea id="techWords" class="input" data-list="techWords"></textarea>
+      </div>
+      <div class="item">
+        <label class="label" for="fluffStrong">Devaneio forte <span class="muted">(uma basta)</span></label>
+        <textarea id="fluffStrong" class="input" data-list="fluffStrong"></textarea>
+      </div>
+      <div class="item">
+        <label class="label" for="fluffWeak">Devaneio fraco</label>
+        <textarea id="fluffWeak" class="input" data-list="fluffWeak"></textarea>
+        <div class="inline">
+          <span class="muted">Fracas diferentes necessárias</span>
+          <input id="fluffNeeded" class="input number" type="number" min="1" max="10" data-number="fluffNeeded">
+        </div>
+      </div>
+      <div class="item">
+        <label class="label" for="baitStrong">Caça-engajamento forte <span class="muted">(uma basta)</span></label>
+        <textarea id="baitStrong" class="input" data-list="baitStrong"></textarea>
+      </div>
+      <div class="item">
+        <label class="label" for="baitWeak">Caça-engajamento fraco <span class="muted">(pergunta solta)</span></label>
+        <textarea id="baitWeak" class="input" data-list="baitWeak"></textarea>
+        <div class="inline">
+          <span class="muted">Fracas diferentes necessárias</span>
+          <input id="baitNeeded" class="input number" type="number" min="1" max="10" data-number="baitNeeded">
+        </div>
+      </div>
+
+      <div class="item">
+        <label class="label" for="courseWords">Curso: produtos</label>
+        <textarea id="courseWords" class="input" data-list="courseWords"></textarea>
+      </div>
+      <div class="item">
+        <label class="label" for="courseSaleWords">Curso: sinais de venda <span class="muted">(precisa produto + venda)</span></label>
+        <textarea id="courseSaleWords" class="input" data-list="courseSaleWords"></textarea>
+      </div>
+      <div class="item">
+        <label class="label" for="courseDomains">Curso: plataformas de venda</label>
+        <textarea id="courseDomains" class="input short" data-list="courseDomains"></textarea>
+      </div>
+
+      <p class="muted hint">Uma por linha. Sem diferença de acento ou maiúscula. Salva sozinho.</p>
+
+      <div class="item actions">
+        <button type="button" id="reset" class="btn btn-outline span-2">Restaurar padrão</button>
+      </div>
+    </details>
+  </main>
+
+  <!-- Apoio: Pix gerado por tools/pix.py (support.js + icons/pix-qr.svg) -->
+  <section class="card support" id="support" hidden>
+    <h2>Ajude a manter o FanficBlock ☕</h2>
+    <p class="muted">Se a extensão te poupou de umas fanfics, um Pix de qualquer valor ajuda a manter o projeto vivo (e o café do dev).</p>
+    <div class="support-body">
+      <img class="pix-qr" src="icons/pix-qr.svg" width="112" height="112" alt="QR Code do Pix">
+      <div class="support-actions">
+        <button type="button" id="pix-copy" class="btn btn-primary">Copiar Pix</button>
+        <p class="muted">No app do banco: Pix → Pix Copia e Cola. Você escolhe o valor.</p>
+      </div>
+    </div>
+  </section>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <script src="defaults.js"></script>
+  <script src="extract.js"></script>
+  <script src="classify.js"></script>
+  <script src="query.js"></script>
+  <script src="stats.js"></script>
+  <script src="support.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

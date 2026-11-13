@@ -1,0 +1,441 @@
+# Posts do feed real (resumidos, com nomes de pessoas trocados por fictícios), uma linha = um pedaço de texto do DOM.
+# "Feed post" separa os posts; "#EXPECT sim|nao [rec]" diz o esperado
+# ("rec" = deve ficar também no modo "só recrutadores").
+# Falso positivo aceito: o post do Rodrigo (mercado de vagas, "job" + "open roles").
+Feed post
+#EXPECT nao
+Followed by
+Pedro Lopes
+Rafael Costa
+• 2nd
+Sua empresa, nativa em IA | CEO da VibeLabs | Partner da Lovable e da SpaceX no 🇧🇷 | MIT Innovator Under 35 em IA
+Visit my website
+4h
+Follow
+BREAKING: A Anthropic ACABOU de lançar o Claude Meetings: Adicione o Claude às suas calls
+Para quem lidera produto, engenharia ou operações, o gargalo deixa de ser “quem vai fazer”.
+Quantas horas por semana o seu time gasta transformando reunião em documento?
+… more
+Show translation
+324
+9
+19
+Feed post
+#EXPECT nao
+Pedro Lopes
+likes this
+Marcos Influencer
+• 2nd
+╰☆ Ajudo a crescer no LinkedIn #1 LinkedIn Influencer PALOP | Personal Branding •CEO & CO-FOUNDER
+4d
+Follow
+Em janeiro de 2018, uma vaca chamou a atenção de moradores do sul da Polônia ao escapar de um matadouro.
+Sua história percorreu o mundo e fez com que ela ficasse conhecida como a "vaca heroína" da Polônia.
+… more
+2,548
+47
+23
+Feed post
+#EXPECT nao
+Recommended for you
+International Digital Partners Brasil
+Company • Staffing and Recruiting
+People who are in the Software Development industry also follow these pages
+Follow
+Stripe
+Show more
+Feed post
+#EXPECT sim rec
+Diego Recruiter
+• Following
+Talent Acquisition | Talent Attraction | Talent Advisor | Tech Recruiter | Headhunter | Human Resources
+View my services
+6d
+💻 VAGA HOME OFFICE: Full Stack Developer (Java/React) na BillingPlatform
+-> 100% remoto
+-> Contratação CLT
+Interessado? Comenta aqui embaixo "PLATFORM" e eu te mando o link direto pra candidatura
+… more
+47
+36
+1
+Feed post
+#EXPECT sim
+Tiago Nunes
+likes this
+Paula Mendes
+• 2nd
+English Career Strategist for Devs | Do Brasil para vagas em USD/EUR | Speaking para entrevistas
+Visit my website
+3d
+Connect
+📢 Repassando mais uma vaga!
+🚀 Analista SRE Júnior | Cielo | 💲 salário não divulgado | Híbrido (Barueri/SP)
+🔗 𝗟𝗶𝗻𝗸: NO COMENTÁRIO FIXADO.
+… more
+9
+3
+1
+Feed post
+#EXPECT nao
+Lucas Prado
+likes this
+Bruno Teixeira
+• 2nd
+Co-Founder & CEO at Passabot | Passhub
+3h
+Follow
+A Passabot acaba de se tornar uma empresa de… ninguém.
+E, no último mês, processou mais de R$ 300 mil em vendas autônomas.
+Quem trabalha com turismo sabe que a venda raramente segue um roteiro bonitinho.
+… more
+38
+2
+3
+Feed post
+#EXPECT nao
+Pedro Lopes
+likes this
+Marcos Influencer
+• 2nd
+╰☆ Ajudo a crescer no LinkedIn
+4d
+Follow
+Uma corretora de imóveis de Dubai recebeu uma Lamborghini Urus azul como recompensa por seu desempenho.
+… more
+2,342
+54
+18
+Renata Alves Verified Profile 3rd+Renata Alves  • 3rd+
+Especialista em Relacionamento com o Cliente | Vendas Consultivas
+13h
+Follow
+Comentário que fala de vaga, estamos contratando, processo seletivo — não deveria contar.
+21 reactions21
+33
+See 53 more comments
+Feed post
+#EXPECT sim rec
+Caio Ramos
+likes this
+Juliana Rocha
+• 2nd
+HR Business Partner | Psicóloga Organizacional e do Trabalho | Talent Acquisition Tech
+View my services
+2d
+Follow
+🚀 VAGA | DESENVOLVEDOR FULLSTACK SÊNIOR (REACT/NODE.JS) | 100% REMOTO
+A Sevenred está em busca de um(a) Desenvolvedor(a) Fullstack Sênior
+Inscreva-se pelo link: https://lnkd.in/dyPyEWAx
+#VagasDeTI
+#VagaRemota
+… more
+Show translation
+sevenred.inhire.app
+67
+11
+3
+Feed post
+#EXPECT sim rec
+Clara Assessoria
+• Following
+Especialista em Recolocação | Job Hunter  |  Recrutamento & Seleção  |  Mentora de Carreira
+2h
+*ANALISTA JURÍDICO JR - JNS SEGUROS - BATEL - CURITIBA*
+A JNS Seguros está em busca de um(a) Analista Jurídico JR para integrar seu time!
+Requisitos e qualificações
+Remuneração e Benefícios
+Jornada de trabalho: 09h00 às 18h - Segunda a Sexta-feira (Presencial).
+Link parase candidatar na vaga de JR:Analista Jurídico JR na JNS SEGUROS | Vaga de Emprego
+… more
+1
+Feed post
+#EXPECT sim
+Sofia Lima
+likes this
+Eduardo Pires
+• 2nd
+Diretor na Infobase | Executivo MIT Technology Review Brasil
+1d
+Follow
+Vaga: Especialista Sênior em Segurança de IA
+A Infobase busca uma pessoa especialista para ser a referência em segurança de IA Generativa.
+Como se candidatar
+Envie seu currículo com pretensão salarial (PJ) para vagas@exemplo.com.br
+#VagasTI
+… more
+23
+1
+6
+Feed post
+#EXPECT sim rec
+Lucas Prado
+likes this
+Mariana Duarte
+• 3rd+
+| Human resources | Talent sourcer | Pipeline Builder | Recruiter | Headhunter | HR operations |
+10h
+Follow
+🚨 Hiring: Junior Tax Preparer | Remote LATAM 🌎
+We are looking for a Junior Tax Preparer to join a U.S.-based accounting team.
+#Hiring
+… more
+12
+7
+Feed post
+#EXPECT sim
+Helena Castro
+likes this
+Beatriz Moura
+• 2nd
+Criadora do Método QuickScanMaturity360 | Dados | Qualidade | (MENTORIAS: PESSOAS & EMPRESAS)
+4h
+Follow
+Olá rede.
+Olha uma vaga de governança de dados sênior.
+#Vaga
+… more
+Analista de Governança de Dados Sênior
+View job
+15
+1
+Feed post
+#EXPECT nao
+André Farias
+• 1st
+The bridge between you and the Data job or Tech job | Fewer applications, more interviews, more offers
+View my services
+9h
+A resposta da IA convenceu, a fonte não
+Um assistente sugere uma implementação de autenticação a partir de discussão antiga.
+Não copie resposta confiante para produção sem verificar se ela continua válida
+… more
+Feed post
+#EXPECT sim rec
+Felipe Recruiter
+• 1st
+Tech Recruiter | R&S | SAP | Talent Acquisition | T.I
+with
+Luana Reis
+ • 5h
+🚀 Oportunidade Gestão de Mudanças Organizacionais!
+A Indra Group está com uma oportunidade aberta para Analista Instrucional Pleno
+Confira todos os detalhes e candidate-se aqui: https://lnkd.in/d7kWBZmy
+#Vagas
+… more
+5
+1
+2
+Feed post
+#EXPECT sim rec
+Camila Torres
+• 2nd
+Graduanda em Psicologia| Gente e Gestão| Recrutamento e seleção| Tech Recruiter| Generalista
+9h
+Connect
+Estamos buscando uma pessoa para atuar como Analista de Sistemas, com foco em ERP TOTVS Protheus.
+Se você tem experiência com Protheus, essa oportunidade pode ser para você! 💙
+👉 Confira todos os detalhes e candidate-se: https://lnkd.in/d_nsfSdz
+… more
+15
+4
+Feed post
+#EXPECT nao
+Larissa Gomes’s
+job update
+Larissa Gomes
+completed 7 years
+at
+weKnow Inc
+Congratulations! 🎉
+Feed post
+#EXPECT sim rec
+Clara Assessoria
+• Following
+Especialista em Recolocação | Job Hunter  |  Recrutamento & Seleção
+4h
+Analista de Governança de TI - Pleno
+Responsável por organizar os processos da área de tecnologia.
+Híbrido - SP -  presencial  2x por semana CLT + Benefícios
+recrutamento@exemplo.com
+… more
+15
+1
+1
+Feed post
+#EXPECT nao
+Gustavo Melo
+likes this
+John Founder
+• 2nd
+Founder & CEO at AIKYNI | Digital Solutions | Web & App Development | AI & Automation
+6d
+Follow
+Are Bubble developers still in demand, or are  we all moving into AI coding? Why are there no vacancies?
+… more
+15
+18
+Alex Dev Premium Profile 2ndAlex Dev  • 2nd
+6d
+Haven’t touched Bubble in years. AI coding is basically all I do these days.
+Feed post
+#EXPECT sim rec
+Lucas Prado
+likes this
+Patrícia Lemos
+• 2nd
+Liderança de CS na maior empresa de tecnologia do Brasil | Customer Success | RH | Gestão de Pessoas
+9h
+Follow
+Olá, Rede!
+Temos uma oportunidade para Customer Success Junior na TOTVS
+Buscamos um(a) Analista de Customer Success para atuar de forma estratégica.
+#CS #CustomerSuccess #Oportunidade #TOTVS
+… more
+169
+26
+Feed post
+#EXPECT sim
+Followed by
+Isabela Cruz
+Rodrigo Barros
+• 2nd
+Senior Full Stack Engineer | Next.js, Node.js, TypeScript, React | LLM, RAG & AI Agents | Remote (GMT-4)
+2d
+Connect
+A "Brazil" job is not always a job in Brazil.
+→ The Brazil view listed 100 companies, with 934 open roles on that list
+Raw counts are a starting point, not a ranking.
+… more
+19
+2
+Feed post
+#EXPECT nao
+Vitor Hugo
+likes this
+Leandro Dev
+• 2nd
+Software Engineer | Frontend | React | I already work for Gringa and speak english, thanks
+6d
+Connect
+Adicionei analytics no meu app!
+❌ Antes: ninguém tava usando.
+✅ Agora: eu posso ver ninguém usar ele, mas em tempo real.
+1,072
+39
+7
+Feed post
+#EXPECT nao
+Followed by
+Omar Khan
+Ravi Kumar
+• 3rd+
+Fullstack Engineer (SDE-II) | JavaScript, React | Typescript, NextJS | AI-Fullstack-Dev
+1d
+Follow
+I analyzed 1,000 React job postings. Here's what companies actually want
+The trend: Companies want T-shaped developers
+Get the Guide here - https://lnkd.in/gP9BHyPn
+… more
+56
+5
+2
+Feed post
+#EXPECT sim rec
+Lucas Prado
+likes this
+Valentina Rojas
+• 2nd
+IT Recruiter Analyst en Praxis
+3h
+Follow
+#PRAXIS
+🚀 LATAM AI Security Engineers – We're Hiring!
+Interested? Send me your CV!
+… more
+1
+Feed post
+#EXPECT sim rec
+Helena Castro
+likes this
+Aline Recruiter
+• 2nd
+Coordenadora de R&S | Talent Acquisition | Gestão de Pessoas | Tech Recruitment
+with
+2 others
+ • 12h
+Follow
+🔎 Vaga: QA de Dados | Projeto de migração no mercado financeiro
+#VagaTI
+… more
+24
+4
+1
+Feed post
+#EXPECT sim rec
+Daniel Fonseca
+likes this
+Inês Recruiter
+• 2nd
+IT Recruiter | Talent Acquisition
+Visit my website
+6d
+Connect
+🚀 Estamos a recrutar | Full Stack Developer
+📍 Localização: Porto
+🏢 Regime: Híbrido (1 dia presencial por semana)
+… more
+12
+3
+Feed post
+#EXPECT nao
+Ivan K.
+Product Marketing Manager (Lead & Senior), Growth Marketing Manager • B2B SaaS • HR Tech
+Promoted by Adapty.io
+🚨 Since Nov 4, Apple lets every subscription app show its own message on the iOS cancel screen.
+… more
+Feed post
+#EXPECT nao
+Google Cloud
+3,499,210 followers
+Promoted
+Dados seguros, mais de um agente por colaborador e pessoas no centro.
+Feed post
+#EXPECT nao
+Karim Haddad
+likes this
+Pieter Jansen
+• 3rd+
+Scale companies with Google Ads
+View my services
+1w
+Follow
+1,820
+21
+45
+Feed post
+#EXPECT nao
+Fulano Silva
+reposted this
+Ana Souza
+• 2nd
+Dev na Acme
+3h
+Follow
+Montei um guia de prompts para devs. Comenta "GUIA" que eu te mando no privado.
+… more
+40
+120
+Feed post
+#EXPECT sim rec
+Fulano Silva
+reposted this
+Bia Recruiter
+• 2nd
+Tech Recruiter | Talent Acquisition
+5h
+Follow
+Estamos contratando pessoa dev backend Node.js, 100% remoto!
+… more
+12
+4

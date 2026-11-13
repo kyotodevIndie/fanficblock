@@ -1,0 +1,116 @@
+<!doctype html>
+<!-- Feed falso no formato novo do LinkedIn (SDUI): sem classes legíveis, cada
+     post começa com um título invisível "Feed post". Monta os posts a partir de
+     test/feed-sdui.txt. Sirva a pasta do projeto (python3 -m http.server) e abra
+     /test/mock-feed-sdui.html — ?rec liga o modo "só recrutadores";
+     ?block=in/fulano bloqueia um autor (pode repetir).
+     jfCheck() compara o resultado com os #EXPECT do arquivo. -->
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Feed falso (SDUI)</title>
+  <link rel="stylesheet" href="/content.css">
+  <style>
+    body { font: 14px system-ui, sans-serif; max-width: 560px; margin: 20px auto; }
+    ._p8x { border: 1px solid #ccc; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+    ._vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    ._c3 { margin-top: 6px; padding: 6px; background: #f3f3f3; font-size: 12px; }
+  </style>
+  <script>
+    const params = new URLSearchParams(location.search);
+    history.replaceState(null, "", "/feed/");
+    window.chrome = {
+      storage: {
+        sync: { get: (defaults, cb) => window.jfReady.then(() => cb({ ...defaults, debug: true,
+                                             mode: "collapse", recruitersOnly: params.has("rec"),
+                                             blockedAuthors: params.getAll("block") })) },
+        // Fanficômetro: fica em window.jfLocal para conferir.
+        local: {
+          get: (defaults, cb) => cb({ ...defaults, ...window.jfLocal }),
+          set: (data) => Object.assign((window.jfLocal ||= {}), data)
+        },
+        onChanged: { addListener() {} }
+      },
+      runtime: { onMessage: { addListener(fn) {
+        window.jfExport = (format = "md", limit = 30) => new Promise((r) => fn({ type: "jf-export", limit, format }, null, r));
+      } } }
+    };
+
+    const TIME = /(^|•\s*)\d{1,2}\s?(h|d|w)(\s|•|$)/;
+    const COUNT = /^\d[\d.,]*(\s*reactions?\s*\d*)?$/;
+    const el = (tag, cls, text) => {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text != null) e.textContent = text;
+      return e;
+    };
+    const add = (parent, child) => (parent.appendChild(child), child);
+
+    // Cada post vira: título invisível, cabeçalho (links), corpo (spans),
+    // barra de reações e, depois dela, comentários.
+    window.jfReady = fetch("/test/feed-sdui.txt").then((r) => r.text()).then((txt) => {
+      const list = document.getElementById("list");
+      const expects = [];
+      let post, part, lastHref, afterBadge;
+      for (const line of txt.split("\n")) {
+        if (!line.trim() || line.startsWith("# ")) continue;
+        if (line.trim() === "Feed post") {
+          lastHref = null;
+          afterBadge = false;
+          post = el("div", "_p8x");
+          post.append(el("h2", "_vh", "Feed post"));
+          part = post.appendChild(el("div", "_h1"));
+          add(list, el("div", "_w0")).append(post);
+          continue;
+        }
+        if (line.startsWith("#EXPECT")) { expects.push(line.split(" ")); continue; }
+        if (part.className === "_h1" && TIME.test(line)) {
+          part.append(el("span", "", line));
+          part = post.appendChild(el("div", "_b2"));
+        } else if (part.className === "_b2" && COUNT.test(line.trim())) {
+          add(post, el("div", "_r4")).append(el("span", "", line));
+          part = post.appendChild(el("div", "_c3"));
+        } else if (part.className === "_h1" || part.className === "_c3") {
+          // Como no LinkedIn: nome com link pro perfil, "• 2nd" com o mesmo
+          // link, título do perfil (depois do "•") em texto puro.
+          const t = line.trim();
+          if (afterBadge || /^(likes this|reposted this|followed by)$/i.test(t)) {
+            part.append(el("div", "", line));
+          } else if (t.startsWith("•")) {
+            add(add(part, el("div", "")), el("a", "", line)).href = lastHref || "/in/x/";
+            afterBadge = true;
+          } else {
+            lastHref = "/in/" + t.toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + "/";
+            add(add(part, el("div", "")), el("a", "", line)).href = lastHref;
+          }
+        } else {
+          part.append(el("p", "", line));
+        }
+      }
+      // Sentinela de "carregar mais", fora dos posts.
+      list.append(el("div", "_s9", "carregando..."));
+      window.jfExpects = expects;
+    });
+
+    window.jfCheck = () => {
+      const rec = params.has("rec");
+      return [...document.querySelectorAll("._w0")].map((w, i) => {
+        const post = w.firstElementChild;
+        const container = post.matches(".jf-hidden, .jf-collapsed, [data-jf-reason]") ? post : w;
+        const hidden = container.matches(".jf-hidden, .jf-collapsed");
+        const exp = window.jfExpects[i];
+        const want = rec ? exp[2] === "rec" : exp[1] === "sim";
+        return `${!hidden === want ? "ok  " : "FAIL"} ${hidden ? "some" : "fica"} [${container.className}] ${container.dataset.jfReason}`;
+      });
+    };
+  </script>
+</head>
+<body>
+  <main><div class="_m1"><div id="list" class="_l2"></div></div></main>
+  <script src="/defaults.js"></script>
+  <script src="/extract.js"></script>
+  <script src="/classify.js"></script>
+  <script src="/stats.js"></script>
+  <script src="/content.js"></script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!doctype html>
+<!-- Prévia do popup fora da extensão, com chrome.storage falso (guardado em
+     memória). Sirva a pasta do projeto e abra /test/popup-preview.html
+     (?demo para números de exemplo nas estatísticas) -->
+<meta charset="utf-8">
+<title>Prévia do popup</title>
+<style>
+  html, body { margin: 0; background: #18181b; }
+  iframe { display: block; width: 392px; height: 1400px; margin: 24px auto; border: 0; }
+</style>
+<iframe id="popup"></iframe>
+<script>
+  const stub = `<script>
+    let store = {};
+    let localStore = {};
+    // ?demo: números de exemplo no Fanficômetro (para o print do README).
+    if (parent.location.search.includes("demo")) {
+      const day = (n) => new Date(Date.now() - n * 864e5).toLocaleDateString("sv-SE");
+      const cats = { notJob: 61, fluff: 23, bait: 17, ads: 12, course: 9, repost: 6, blocked: 3, jobFilter: 6 };
+      const days = { [day(0)]: { total: 42, cats: {} }, [day(1)]: { total: 31, cats: {} }, [day(3)]: { total: 25, cats: {} } };
+      localStore.jfStats = { total: 137, cats, days, seen: [] };
+    }
+    window.chrome = {
+      storage: {
+        sync: {
+          get: (defaults, cb) => cb({ ...defaults, ...store }),
+          set: (data, cb) => { Object.assign(store, data); cb && cb(); }
+        },
+        local: {
+          get: (defaults, cb) => cb({ ...defaults, ...localStore }),
+          set: (data, cb) => { Object.assign(localStore, data); cb && cb(); }
+        }
+      },
+      runtime: { getManifest: () => ({ version: "0.1.2", version_name: "beta.0.1.2" }) },
+      tabs: { query: async () => [{ id: 1 }], sendMessage: async () => { throw new Error("prévia"); } }
+    };
+  <\/script>`;
+  fetch("/popup.html").then((r) => r.text()).then((html) => {
+    document.getElementById("popup").srcdoc = html
+      .replace("<head>", '<head><base href="/">')
+      .replace('<script src="defaults.js">', stub + '<script src="defaults.js">');
+  });
+</script>

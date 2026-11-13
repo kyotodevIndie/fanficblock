@@ -1,0 +1,67 @@
+/* Estilo das peças que a extensão coloca no feed (zinc do shadcn). */
+
+.jf-hidden {
+  display: none !important;
+}
+
+/* 1px em vez de 0: o LinkedIn tira o conteúdo de cards que não aparecem na
+   tela, e um card de altura 0 nunca "aparece" — aí o "mostrar" abria vazio.
+   display: block porque no feed novo o card é "display: contents" (sem caixa),
+   e aí max-height/opacity não fazem nada: o post continuava aparecendo. */
+.jf-collapsed {
+  display: block !important;
+  max-height: 1px !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+.jf-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 8px 12px;
+  border: 1px solid #27272a;
+  border-radius: 8px;
+  background: #09090b;
+  color: #a1a1aa;
+  font: 12px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.jf-bar button {
+  flex-shrink: 0;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid #27272a;
+  border-radius: 6px;
+  background: #18181b;
+  color: #fafafa;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Barra de "Esconder de novo" em cima do post que foi mostrado. */
+.jf-bar-shown {
+  border-style: dashed;
+}
+
+.jf-bar button:hover {
+  background: #27272a;
+}
+
+.jf-tag {
+  display: inline-block;
+  margin: 0 0 4px;
+  padding: 2px 8px;
+  border: 1px solid #27272a;
+  border-radius: 9999px;
+  background: #09090b;
+  color: #a1a1aa;
+  font: 11px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}

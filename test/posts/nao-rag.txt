@@ -1,0 +1,13 @@
+Seu RAG não está errando na resposta.
+Está errando antes dela.
+Quando um assistente com RAG responde errado, o primeiro reflexo é mexer no prompt ou trocar o modelo.
+Na maioria das vezes, o problema já aconteceu antes: o trecho certo nunca chegou ao contexto.
+Antes de tocar no prompt, eu olho 4 coisas, nessa ordem:
+1. Recall do retrieval: para as perguntas reais, o documento certo aparece no top-k? Se não aparece, nenhum modelo salva.
+2. Chunking: a resposta ficou partida entre dois pedaços? Tabela cortada e regra separada da exceção são clássicos.
+3. Busca híbrida: termos exatos (código de produto, nome de plano, número de norma) costumam escapar da busca só vetorial. BM25 + embeddings + reranking resolve muita coisa.
+4. Metadados e filtros: o documento certo existe, mas é de outra versão, outro cliente ou outra data.
+Só depois vem o grounding: a resposta está sustentada no que foi recuperado, ou o modelo completou com o que "achava"?
+Em Python, com LangChain ou código próprio, isso vira um eval de retrieval separado do eval de resposta. Misturados, você nunca sabe qual parte quebrou.
+RAG bom é muito mais engenharia de busca do que prompt.
+#InteligenciaArtificial #RAG #LangChain #Python #AIEngineering

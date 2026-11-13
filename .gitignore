@@ -1,0 +1,16 @@
+# Exports de posts do feed (trazem nomes e textos de outras pessoas)
+fanficblock-posts-*.md
+fanficblock-posts-*.json
+
+# Imagens de origem que não fazem parte da extensão
+*.png
+!icons/*.png
+!docs/*.png
+
+# Sistema e editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+__pycache__/
+*.zip
