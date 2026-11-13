@@ -47,9 +47,10 @@ E a vaga que você queria? Lá embaixo, se tiver sorte.
 - **Filtra a vaga do seu jeito:** tecnologia, senioridade, modelo (remoto,
   híbrido, presencial), contratação, localização, salário mínimo, anos de
   experiência, empresas bloqueadas e favoritas.
-- **Monta a busca pra você:** escolha as opções e ele escreve a busca
-  booleana do LinkedIn (`(React OR Node) AND pleno NOT estágio`) direto no
-  campo de busca.
+- **Gerador de query:** escolha tecnologia, senioridade, modelo,
+  contratação, local e o que excluir, e ele monta a query booleana do
+  LinkedIn (`(React OR Node) AND pleno NOT estágio`) e coloca direto no campo
+  de busca. É só apertar Enter.
 - **Fanficômetro 📊:** quantas fanfics você deixou de ler hoje, na semana e
   no total, e quanto tempo isso te poupou.
 - **Você decide:** o post some de vez ou vira uma barrinha com "Mostrar".
@@ -116,7 +117,7 @@ Os detalhes estão na [política de privacidade](PRIVACY.md).
   e liberados, painel com busca e contador.
 - [x] **Fase 2, vagas avançadas:** localização, salário, empresas,
   tecnologias, anos de experiência, vendedor de curso, domínios, vaga
-  incompleta ou repetida, gerador de busca e Fanficômetro.
+  incompleta ou repetida, gerador de query e Fanficômetro.
 - [ ] **Fase 3, identidade:** categorias de fanfic (Síndrome do protagonista,
   Coach quântico corporativo, Mendigo de engajamento, Humildade premium,
   Fanfic de recrutamento, Conteúdo genérico de IA), presets (Caça-Vagas,

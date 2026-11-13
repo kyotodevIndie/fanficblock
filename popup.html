@@ -204,10 +204,14 @@
         <button type="button" role="switch" class="switch" data-setting="flagDuplicates" aria-label="Marcar vaga repetida"></button>
       </div>
 
+      </details>
+    </details>
+
+    <!-- 4. Gerador de query -->
+    <details class="card section" open>
+      <summary>Gerador de query 🔎</summary>
       <div class="item" id="query-builder">
-        <div class="separator"></div>
-        <div class="label">Gerador de busca 🔎</div>
-        <div class="muted hint">Monta a busca do LinkedIn com as opções abaixo. "Aplicar" coloca no campo de pesquisa: é só apertar Enter.</div>
+        <div class="muted hint">Monta a query de busca do LinkedIn (AND, OR, NOT) com as opções abaixo. "Aplicar na busca" coloca no campo de pesquisa: é só apertar Enter.</div>
         <div class="warning" role="note">
           ⚠️ Quanto mais opções, mais específica a busca e <strong>menos vagas</strong> aparecem. Use com sabedoria 🧙
           <span id="q-level"></span>
@@ -243,10 +247,9 @@
           <button type="button" id="q-apply" class="btn btn-primary span-2">Aplicar na busca</button>
         </div>
       </div>
-      </details>
     </details>
 
-    <!-- 4. Antifanfic -->
+    <!-- 5. Antifanfic -->
     <details class="card section" open>
       <summary>Antifanfic</summary>
       <div class="item row">
@@ -265,7 +268,7 @@
       </div>
     </details>
 
-    <!-- 5. Conteúdo -->
+    <!-- 6. Conteúdo -->
     <details class="card section" open>
       <summary>Conteúdo</summary>
       <div class="item row">
@@ -306,7 +309,7 @@
       </div>
     </details>
 
-    <!-- 6. Avançado -->
+    <!-- 7. Avançado -->
     <details class="card section">
       <summary>Avançado</summary>
 

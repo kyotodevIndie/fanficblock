@@ -116,7 +116,7 @@ deles, vale abrir uma issue antes pra gente conversar.
 | Ler local, salário, experiência ou domínio do texto | `extract.js` |
 | Mexer em como os posts são achados ou escondidos no feed | `content.js` / `content.css` |
 | Mexer no painel | `popup.html` / `popup.css` / `popup.js` |
-| Mexer no gerador de busca | `query.js` |
+| Mexer no gerador de query | `query.js` |
 | Mexer nas estatísticas | `stats.js` |
 
 `classify.js`, `extract.js`, `query.js` e `stats.js` não usam DOM: dá pra

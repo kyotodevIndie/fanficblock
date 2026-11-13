@@ -62,6 +62,14 @@ post conta uma vez (hash curto do autor + começo do texto). Fica no
   com o mesmo texto já apareceu na aba (só em memória). É só um aviso: não
   quer dizer que a vaga é fantasma.
 
+**Gerador de query**: monta a query de busca do LinkedIn a partir de selects
+(idioma, tecnologias com "qualquer uma"/"todas", senioridade, modelo,
+contratação, local e exclusões com NOT). Cada opção vira um grupo
+`(a OR b)`, os grupos se juntam com `AND` e as exclusões vão no fim com
+`NOT`. "Aplicar na busca" escreve a query no campo de pesquisa do LinkedIn
+(é só apertar Enter); "Copiar" põe na área de transferência. O aviso mostra
+quantas opções estão restringindo: quanto mais opções, menos vagas.
+
 **Antifanfic**
 - **Bloquear devaneio**: "fui demitido e agradeci", "lição de liderança",
   "não é sobre X, é sobre Y". Uma frase forte basta; palavras fracas
@@ -137,7 +145,7 @@ derrubam por falta de informação.
 | `extract.js` | Extrai local, salário, anos de experiência e domínios do texto |
 | `classify.js` | Decide se um post fica (sem DOM, testável no Node) |
 | `stats.js` | Fanficômetro: categorias, contagem por dia, tempo poupado |
-| `query.js` | Gerador de busca do LinkedIn (AND/OR/NOT) do painel |
+| `query.js` | Gerador de query de busca do LinkedIn (AND/OR/NOT) do painel |
 | `support.js` / `icons/pix-qr.svg` | Pix do card de apoio, gerados por `tools/pix.py` |
 | `tools/pix.py` | Gera o Pix: `pip install segno` e `python3 tools/pix.py --key ... --name ... --city ...` |
 | `content.js` | Encontra os posts, extrai texto/autor/cabeçalho, esconde |

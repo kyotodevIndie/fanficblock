@@ -189,7 +189,7 @@ $("#reset").addEventListener("click", () => {
   });
 });
 
-// --- Gerador de busca ------------------------------------------------------
+// --- Gerador de query ------------------------------------------------------
 // Estado guardado em storage.local (é só conveniência deste navegador).
 let query = { ...JF_QUERY_EMPTY };
 
