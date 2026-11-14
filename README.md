@@ -15,6 +15,7 @@ vagas que fazem sentido pra você.
 ![Sem dependências](https://img.shields.io/badge/depend%C3%AAncias-zero-22c55e?style=flat-square)
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Noncommercial-f59e0b?style=flat-square)
 
+[Site](https://kyotodevindie.github.io/fanficblock/) ·
 [Instalar](#-instalar) ·
 [O que ele barra](#-o-que-ele-barra) ·
 [Privacidade](#-privacidade) ·

@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FanficBlock: chega de fanfic corporativa</title>
+  <meta name="description" content="Extensão gratuita que tira as fanfics corporativas do feed do LinkedIn e deixa só as vagas que importam. Tudo local, sem rastreio.">
+  <meta property="og:title" content="FanficBlock: chega de fanfic corporativa">
+  <meta property="og:description" content="Tira o textão de ego, o “comenta EU” e o curso milagroso do feed do LinkedIn. Fica só a vaga.">
+  <meta property="og:image" content="https://kyotodevindie.github.io/fanficblock/store/screenshot-1.png">
+  <meta name="theme-color" content="#09090b">
+  <link rel="icon" href="icons/icon-32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bg" aria-hidden="true"><span></span><span></span><span></span></div>
+
+  <header class="nav">
+    <a class="logo" href="#topo"><img src="icons/logo-256.png" alt="" width="32" height="32">FanficBlock</a>
+    <nav>
+      <a href="#teste">Teste o filtro</a>
+      <a href="#recursos">Recursos</a>
+      <a href="#privacidade">Privacidade</a>
+      <a href="#apoie">Apoie</a>
+    </nav>
+    <a class="btn btn-sm" href="#instalar">Instalar grátis</a>
+  </header>
+
+  <main id="topo">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="pill"><span class="dot"></span> beta gratuito · Chrome, Edge, Brave</span>
+        <h1>Chega de<br><span class="rotator" id="rotator"><span class="word">fanfic corporativa</span></span><span class="period">.</span></h1>
+        <p class="lead">A extensão que tira do feed do LinkedIn o textão de ego, o “comenta EU” e o curso milagroso, e deixa <strong>só as vagas que fazem sentido pra você</strong>.</p>
+        <div class="cta">
+          <a class="btn btn-glow" href="#instalar">Instalar grátis</a>
+          <a class="btn btn-ghost" href="#teste">Testar um post agora →</a>
+        </div>
+        <ul class="trust">
+          <li>🔒 100% local</li>
+          <li>🧩 1 permissão</li>
+          <li>💸 de graça</li>
+        </ul>
+      </div>
+
+      <div class="demo" aria-label="Demonstração: um feed fictício sendo filtrado">
+        <div class="demo-top">
+          <span class="demo-dots"><i></i><i></i><i></i></span>
+          <span class="demo-title">seu feed</span>
+          <span class="demo-count"><b id="demo-count">0</b> fanfics barradas</span>
+        </div>
+        <div class="demo-feed" id="demo-feed"></div>
+      </div>
+    </section>
+
+    <!-- Ticker de clichês -->
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker-track" id="ticker"></div>
+    </div>
+
+    <!-- Detector -->
+    <section class="section" id="teste">
+      <div class="section-head reveal">
+        <span class="kicker">Teste o filtro</span>
+        <h2>Isso é vaga ou <em>fanfic</em>?</h2>
+        <p>Cole um post (ou escolha um exemplo). Quem decide é o mesmo código da extensão, rodando aqui no seu navegador. Nada é enviado pra lugar nenhum.</p>
+      </div>
+      <div class="detector reveal">
+        <div class="detector-in">
+          <div class="examples" id="examples"></div>
+          <textarea id="post" rows="7" placeholder="Cole aqui um post do LinkedIn..."></textarea>
+        </div>
+        <div class="verdict" id="verdict" aria-live="polite">
+          <div class="verdict-idle">
+            <span class="big">🤔</span>
+            <p>Escreva ou escolha um post pra ver o veredito.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recursos -->
+    <section class="section" id="recursos">
+      <div class="section-head reveal">
+        <span class="kicker">Recursos</span>
+        <h2>Tudo que o seu feed <em>precisava</em>.</h2>
+      </div>
+      <div class="grid">
+        <article class="feature reveal"><span class="ico">📭</span><h3>Só vagas</h3><p>Esconde tudo que não é vaga de emprego. Quer mais rigor? Deixe só vaga postada por recrutador.</p></article>
+        <article class="feature reveal"><span class="ico">🦄</span><h3>Antifanfic</h3><p>Devaneio motivacional, caça-engajamento, vendedor de curso, anúncio e repost: barrados.</p></article>
+        <article class="feature reveal"><span class="ico">🎯</span><h3>Vagas do seu jeito</h3><p>Tecnologia, senioridade, remoto ou presencial, CLT ou PJ, local, salário mínimo e anos de experiência.</p></article>
+        <article class="feature reveal"><span class="ico">🔎</span><h3>Gerador de query</h3><p>Escolha as opções e ele monta a busca booleana do LinkedIn e coloca no campo de busca.</p></article>
+        <article class="feature reveal"><span class="ico">📊</span><h3>Fanficômetro</h3><p>Quantas fanfics você deixou de ler hoje, na semana e no total, e quanto tempo isso te poupou.</p></article>
+        <article class="feature reveal"><span class="ico">👀</span><h3>Você no controle</h3><p>O post some de vez ou vira uma barrinha com o motivo e o botão “Mostrar”. Arrependeu? “Esconder de novo”.</p></article>
+      </div>
+    </section>
+
+    <!-- Gerador de query -->
+    <section class="section split" id="query">
+      <div class="reveal">
+        <span class="kicker">Gerador de query</span>
+        <h2>A busca certa, <em>sem decorar AND e OR</em>.</h2>
+        <p>Brinque aqui. Na extensão, o botão “Aplicar na busca” coloca a query direto no LinkedIn: é só apertar Enter.</p>
+        <p class="warn">⚠️ Quanto mais opções, <strong>menos vagas</strong> aparecem. Use com sabedoria 🧙</p>
+      </div>
+      <div class="qb reveal">
+        <div class="qb-row"><span class="qb-label">Tecnologias</span><div class="chips" id="qb-techs"></div></div>
+        <div class="qb-row"><span class="qb-label">Senioridade</span><div class="chips" id="qb-seniority"></div></div>
+        <div class="qb-row"><span class="qb-label">Modelo</span><div class="chips" id="qb-modality"></div></div>
+        <div class="qb-row"><span class="qb-label">Sem</span><div class="chips" id="qb-exclude"></div></div>
+        <div class="qb-out">
+          <code id="qb-output"></code>
+          <button class="btn btn-sm" id="qb-copy" type="button">Copiar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Painel -->
+    <section class="section split reverse">
+      <div class="reveal">
+        <span class="kicker">O painel</span>
+        <h2>Simples na frente, <em>poderoso</em> atrás.</h2>
+        <p>Liga, escolhe se o post some ou vira barrinha, e pronto. Quer ir fundo? As opções avançadas têm localização, salário, empresas, domínios bloqueados e listas de palavras editáveis.</p>
+        <div class="stats" id="stats">
+          <div><b data-count="0">0</b><span>servidores</span></div>
+          <div><b data-count="1">0</b><span>permissão</span></div>
+          <div><b data-count="0">0</b><span>dependências</span></div>
+          <div><b data-count="100" data-suffix="%">0</b><span>local</span></div>
+        </div>
+      </div>
+      <div class="panel-shots reveal">
+        <img class="shot shot-a" src="store/img/painel-topo.png" alt="Painel do FanficBlock: Geral e Estatísticas" loading="lazy">
+        <img class="shot shot-b" src="store/img/painel-stats.png" alt="Fanficômetro com as categorias" loading="lazy">
+      </div>
+    </section>
+
+    <!-- Privacidade -->
+    <section class="section" id="privacidade">
+      <div class="section-head reveal">
+        <span class="kicker">Privacidade</span>
+        <h2>Seu feed <em>não sai</em> do seu navegador.</h2>
+      </div>
+      <div class="grid four">
+        <article class="feature reveal"><span class="ico">🏠</span><h3>Tudo local</h3><p>Os posts são lidos e filtrados na própria página. Não existe servidor.</p></article>
+        <article class="feature reveal"><span class="ico">🙈</span><h3>Sem rastreio</h3><p>Nada de analytics, cookies de rastreamento ou anúncios.</p></article>
+        <article class="feature reveal"><span class="ico">🧩</span><h3>Uma permissão</h3><p>Só <code>storage</code>, pra lembrar das suas configurações.</p></article>
+        <article class="feature reveal"><span class="ico">🔢</span><h3>Só números</h3><p>As estatísticas nunca guardam o texto dos posts, e o histórico é limitado.</p></article>
+      </div>
+      <p class="center reveal"><a class="link" href="https://github.com/kyotodevIndie/fanficblock/blob/main/PRIVACY.md">Ler a política de privacidade →</a></p>
+    </section>
+
+    <!-- Instalar -->
+    <section class="section" id="instalar">
+      <div class="section-head reveal">
+        <span class="kicker">Instalar</span>
+        <h2>Pronto em <em>1 minuto</em>.</h2>
+        <p>Em breve nas lojas. Por enquanto, instale direto do código:</p>
+      </div>
+      <ol class="steps">
+        <li class="reveal"><b>1</b><div><h3>Baixe</h3><p><a class="link" href="https://github.com/kyotodevIndie/fanficblock/archive/refs/heads/main.zip">Baixe o ZIP</a> e descompacte.</p></div></li>
+        <li class="reveal"><b>2</b><div><h3>Abra as extensões</h3><p>Digite <code>chrome://extensions</code> na barra de endereço.</p></div></li>
+        <li class="reveal"><b>3</b><div><h3>Modo do desenvolvedor</h3><p>Ligue a chave no canto superior direito.</p></div></li>
+        <li class="reveal"><b>4</b><div><h3>Carregue</h3><p>Clique em <b>Carregar sem compactação</b>, escolha a pasta e abra o LinkedIn.</p></div></li>
+      </ol>
+      <div class="center reveal">
+        <a class="btn btn-glow" href="https://github.com/kyotodevIndie/fanficblock/archive/refs/heads/main.zip">Baixar o FanficBlock</a>
+        <a class="btn btn-ghost" href="https://github.com/kyotodevIndie/fanficblock">Ver no GitHub</a>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section narrow">
+      <div class="section-head reveal">
+        <span class="kicker">Perguntas</span>
+        <h2>Na dúvida, <em>a vaga fica</em>.</h2>
+      </div>
+      <div class="faq reveal">
+        <details><summary>É de graça mesmo?</summary><p>É, e vai continuar sendo. O código é aberto para uso não comercial. Se quiser, dá pra apoiar com um Pix aqui embaixo.</p></details>
+        <details><summary>E se ele esconder uma vaga boa?</summary><p>O filtro foi feito pra errar pro lado da vaga: na dúvida, ela fica. E se você usar o modo “Recolhido”, todo post escondido vira uma barrinha com o motivo e o botão “Mostrar”.</p></details>
+        <details><summary>Ele diz que um post é mentira ou feito por IA?</summary><p>Nunca. O FanficBlock só diz por que escondeu (“caça-engajamento”, “vendedor de curso”). Ele não afirma que um post é falso nem que uma vaga é fantasma.</p></details>
+        <details><summary>Funciona em qual navegador?</summary><p>Chrome e os baseados nele: Edge, Brave, Opera, Arc. No Firefox ainda não.</p></details>
+        <details><summary>Ele lê minhas mensagens?</summary><p>Não. Ele só roda no feed do LinkedIn, só lê o texto dos posts pra decidir o que esconder, e nada sai do seu computador.</p></details>
+        <details><summary>Achei um post que passou. E agora?</summary><p>Abra uma <a class="link" href="https://github.com/kyotodevIndie/fanficblock/issues/new/choose">issue no GitHub</a> com o texto (sem o nome de quem postou). É assim que o filtro fica mais esperto.</p></details>
+      </div>
+    </section>
+
+    <!-- Apoie -->
+    <section class="section" id="apoie">
+      <div class="support reveal">
+        <img src="icons/pix-qr.svg" alt="QR Code do Pix" width="180" height="180">
+        <div>
+          <span class="kicker">Apoie o projeto</span>
+          <h2>Te poupou de umas <em>fanfics</em>?</h2>
+          <p>Um Pix de qualquer valor ajuda a manter o FanficBlock vivo (e o café do dev). Não pode doar? Uma ⭐ no GitHub e mandar pro amigo que está procurando vaga já ajuda demais.</p>
+          <div class="cta">
+            <button class="btn btn-glow" id="pix-copy" type="button">Copiar Pix copia e cola</button>
+            <a class="btn btn-ghost" href="https://github.com/kyotodevIndie/fanficblock">⭐ Dar uma estrela</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Feito com ☕ e um pouco de raiva do feed do LinkedIn.</p>
+    <p class="muted">
+      <a href="https://github.com/kyotodevIndie/fanficblock">GitHub</a> ·
+      <a href="https://github.com/kyotodevIndie/fanficblock/blob/main/LICENSE">Licença PolyForm Noncommercial</a> ·
+      <a href="https://github.com/kyotodevIndie/fanficblock/blob/main/CONTRIBUTING.md">Contribuir</a><br>
+      O FanficBlock é um projeto independente e não tem relação com o LinkedIn.
+    </p>
+  </footer>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <!-- O mesmo código da extensão: o detector e o gerador usam ele de verdade. -->
+  <script src="defaults.js"></script>
+  <script src="extract.js"></script>
+  <script src="classify.js"></script>
+  <script src="stats.js"></script>
+  <script src="query.js"></script>
+  <script src="support.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
