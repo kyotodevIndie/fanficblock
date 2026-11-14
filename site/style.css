@@ -14,6 +14,8 @@
   --green: #22c55e;
   --amber: #fde68a;
   --grad: linear-gradient(90deg, var(--orange), var(--pink) 55%, var(--violet));
+  /* Para o que anima: volta ao laranja no fim, então o loop não tem emenda. */
+  --grad-loop: linear-gradient(90deg, var(--orange), var(--pink) 25%, var(--violet) 50%, var(--pink) 75%, var(--orange));
   --radius: 16px;
   --display: "Bricolage Grotesque", "Inter", system-ui, sans-serif;
   --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -86,7 +88,7 @@ em { font-style: normal; background: var(--grad); -webkit-background-clip: text;
 .btn-ghost { background: transparent; }
 .btn-glow {
   border: 0; color: #fff;
-  background: var(--grad); background-size: 200% 100%;
+  background: var(--grad-loop); background-size: 200% 100%;
   box-shadow: 0 10px 40px -10px rgba(236, 72, 153, 0.7);
   animation: shimmer 6s linear infinite;
 }
@@ -109,7 +111,7 @@ em { font-style: normal; background: var(--grad); -webkit-background-clip: text;
 .rotator { position: relative; display: inline-block; min-height: 1.05em; }
 .rotator .word {
   position: relative; display: inline-block;
-  background: var(--grad); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  background: var(--grad-loop); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
   animation: shimmer 5s linear infinite;
 }
 .rotator .word::after {
