@@ -3,7 +3,7 @@ const $$ = (sel) => [...document.querySelectorAll(sel)];
 
 let settings = { ...JF_DEFAULTS };
 
-// Versão do manifest ("version_name" quando houver, ex.: beta.0.1.2).
+// Versão do manifest ("version_name" quando houver, ex.: beta-0.1.1).
 const manifest = chrome.runtime?.getManifest?.();
 $("#version").textContent = manifest ? manifest.version_name || `v${manifest.version}` : "";
 
