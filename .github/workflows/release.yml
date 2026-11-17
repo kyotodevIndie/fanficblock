@@ -1,0 +1,38 @@
+# Ao subir uma tag (v0.1.1, v0.2.0...), monta a extensão e publica o .zip numa
+# release do GitHub. O site e o README apontam para
+# releases/latest/download/fanficblock.zip, então o nome sem versão é fixo.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Typecheck, testes e pacote
+        run: tools/pack.sh
+      - name: Publica a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(node -p 'require("./extension/manifest.json").version')
+          NAME=$(node -p 'require("./extension/manifest.json").version_name || ""')
+          cp "dist/fanficblock-$VERSION.zip" dist/fanficblock.zip
+          TAG="${GITHUB_REF_NAME}"
+          [ "$GITHUB_REF_TYPE" = tag ] || TAG="v$VERSION"
+          # Sem --prerelease mesmo em beta: releases/latest ignora pré-release.
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" \
+            --title "FanficBlock ${NAME:-$VERSION}" --generate-notes
+          gh release upload "$TAG" dist/fanficblock.zip "dist/fanficblock-$VERSION.zip" --clobber

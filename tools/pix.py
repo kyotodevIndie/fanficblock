@@ -8,7 +8,7 @@ gerados, sem biblioteca de QR.
     python3 tools/pix.py --key <chave> --name "Nome Da Conta" --city "Sao Paulo"
 
 Gera:
-    support.js         const JF_PIX = "<copia e cola>"
+    src/support.ts     export const JF_PIX = "<copia e cola>"
     icons/pix-qr.svg   QR do mesmo texto
 """
 
@@ -72,9 +72,9 @@ def main() -> None:
     qr.save(ROOT / "icons" / "pix-qr.svg", kind="svg", scale=4, border=4,
             dark="#09090b", light="#fafafa", xmldecl=False, svgns=True, nl=False)
 
-    (ROOT / "support.js").write_text(
+    (ROOT / "src" / "support.ts").write_text(
         "// Gerado por tools/pix.py — não edite à mão.\n"
-        f'const JF_PIX = "{payload}";\n',
+        f'export const JF_PIX = "{payload}";\n',
         encoding="utf-8",
     )
     print(payload)

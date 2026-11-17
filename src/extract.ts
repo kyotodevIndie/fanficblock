@@ -1,14 +1,18 @@
 // Extração de dados de vaga a partir do texto: localização, salário, anos de
 // experiência e domínios de links. Só leitura de texto, sem DOM e sem decisão
-// (quem decide é classify.js). Tudo heurístico: quando não dá para ter
+// (quem decide é classify.ts). Tudo heurístico: quando não dá para ter
 // certeza, devolve "desconhecido" (null/vazio) em vez de chutar.
 
 // Sem acento, mas mantendo maiúsculas — os índices batem com jfNormalize().
-const jfStripAccents = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "");
+export const jfStripAccents = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "");
 
 // --- Localização ------------------------------------------------------------
 // [id, tipo, pai, nomes (sem acento, minúsculas), UF opcional]
-const JF_PLACES = [
+export type PlaceType = "region" | "country" | "state" | "city";
+type PlaceRow = [id: string, type: PlaceType, parent: string | null, names: string[], uf?: string];
+export interface Place { id: string; type: PlaceType; parent: string | null; names: string[]; uf?: string }
+
+export const JF_PLACES: PlaceRow[] = [
   ["world", "region", null, ["worldwide", "anywhere", "qualquer lugar do mundo", "global remote", "remote global"]],
   ["latam", "region", "world", ["latam", "latin america", "america latina", "latinoamerica"]],
   ["europe", "region", "world", ["europe", "europa", "emea"]],
@@ -119,36 +123,36 @@ const JF_PLACES = [
   ["coimbra", "city", "pt", ["coimbra"]]
 ];
 
-const JF_PLACE = new Map(JF_PLACES.map(([id, type, parent, names, uf]) => [id, { id, type, parent, names, uf }]));
+export const JF_PLACE = new Map<string, Place>(JF_PLACES.map(([id, type, parent, names, uf]) => [id, { id, type, parent, names, uf }]));
 
 // Nomes ordenados do maior para o menor: "porto alegre" ganha de "porto",
 // "mato grosso do sul" ganha de "mato grosso".
-const JF_PLACE_NAMES = JF_PLACES
+export const JF_PLACE_NAMES = JF_PLACES
   .flatMap(([id, , , names]) => names.map((name) => ({ id, name })))
   .sort((a, b) => b.name.length - a.name.length);
 
-const JF_UF_RE = new RegExp(
+export const JF_UF_RE = new RegExp(
   `(?:^|[/(,|–—-]\\s*)(${JF_PLACES.filter((p) => p[4]).map((p) => p[4]).join("|")})(?=\\s*(?:$|[)\\s,.|;:/–—-]))`,
   "g"
 );
 
-const jfPlaceLabel = (id) => {
+export const jfPlaceLabel = (id: string) => {
   const place = JF_PLACE.get(id);
   if (!place) return id;
   if (place.uf) return place.uf;
   return place.names[0].replace(/(^|\s)\S/g, (c) => c.toUpperCase());
 };
 
-function jfIsAncestorOrSelf(ancestor, id) {
-  for (let cur = id; cur; cur = JF_PLACE.get(cur)?.parent) {
+export function jfIsAncestorOrSelf(ancestor: string, id: string) {
+  for (let cur: string | null | undefined = id; cur; cur = JF_PLACE.get(cur)?.parent) {
     if (cur === ancestor) return true;
   }
   return false;
 }
 
 // País ou região de um lugar (para comparar vaga remota).
-function jfCountryOf(id) {
-  for (let cur = id; cur; cur = JF_PLACE.get(cur)?.parent) {
+export function jfCountryOf(id: string) {
+  for (let cur: string | null | undefined = id; cur; cur = JF_PLACE.get(cur)?.parent) {
     const t = JF_PLACE.get(cur)?.type;
     if (t === "country" || t === "region") return cur;
   }
@@ -158,11 +162,11 @@ function jfCountryOf(id) {
 // Lugares citados no texto. Nome de lugar só conta com inicial maiúscula
 // ("Natal" é cidade, "natal" é Natal). Fica só o mais específico: "Barueri/SP"
 // vira só Barueri.
-function jfFindPlaces(raw) {
+export function jfFindPlaces(raw: string): string[] {
   const cased = jfStripAccents(raw);
   const lower = cased.toLowerCase();
-  const found = new Set();
-  const taken = [];
+  const found = new Set<string>();
+  const taken: [number, number][] = [];
   for (const { id, name } of JF_PLACE_NAMES) {
     const re = new RegExp(`(^|[^a-z0-9])${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![a-z0-9])`, "g");
     for (let m = re.exec(lower); m; m = re.exec(lower)) {
@@ -183,7 +187,7 @@ function jfFindPlaces(raw) {
 }
 
 // Entrada do usuário ("SP", "Curitiba", "Brasil", "LATAM") → id conhecido, ou null.
-function jfResolvePlace(entry) {
+export function jfResolvePlace(entry: string): string | null {
   const e = jfStripAccents(entry.trim()).toLowerCase();
   const byUf = JF_PLACES.find((p) => p[4] && p[4].toLowerCase() === e);
   if (byUf) return byUf[0];
@@ -195,16 +199,16 @@ function jfResolvePlace(entry) {
 }
 
 // --- Salário ----------------------------------------------------------------
-const JF_CURRENCY_RE = "(R\\$|US\\$|U\\$|USD|BRL|EUR|€|£|GBP|\\$)";
-const JF_AMOUNT_RE = "(\\d{1,3}(?:[.,\\s]\\d{3})+(?:[.,]\\d{1,2})?|\\d+(?:[.,]\\d+)?)\\s*(k|mil)?";
-const JF_SALARY_RE = new RegExp(
+export const JF_CURRENCY_RE = "(R\\$|US\\$|U\\$|USD|BRL|EUR|€|£|GBP|\\$)";
+export const JF_AMOUNT_RE = "(\\d{1,3}(?:[.,\\s]\\d{3})+(?:[.,]\\d{1,2})?|\\d+(?:[.,]\\d+)?)\\s*(k|mil)?";
+export const JF_SALARY_RE = new RegExp(
   `${JF_CURRENCY_RE}\\s*${JF_AMOUNT_RE}(?:\\s*(?:a|até|ate|to|-|–|—)\\s*${JF_CURRENCY_RE}?\\s*${JF_AMOUNT_RE})?`,
   "gi"
 );
-const JF_SALARY_WORDS = /(salario|remuneracao|faixa salarial|faixa|salary|compensation|pay range|pagamento|ganhos|bolsa)/;
-const JF_BENEFIT_WORDS = /(vale|\bva\b|\bvr\b|\bvt\b|auxilio|ajuda de custo|bonus|bonificacao|\bplr\b|\bppr\b|desconto|beneficio|refeicao|alimentacao|transporte|reembolso|seguro|plano|vendas|faturamento|investimento|captou|rodada)/;
+export const JF_SALARY_WORDS = /(salario|remuneracao|faixa salarial|faixa|salary|compensation|pay range|pagamento|ganhos|bolsa)/;
+export const JF_BENEFIT_WORDS = /(vale|\bva\b|\bvr\b|\bvt\b|auxilio|ajuda de custo|bonus|bonificacao|\bplr\b|\bppr\b|desconto|beneficio|refeicao|alimentacao|transporte|reembolso|seguro|plano|vendas|faturamento|investimento|captou|rodada)/;
 
-function jfParseAmount(num, suffix) {
+export function jfParseAmount(num: string, suffix?: string) {
   let n = num.replace(/\s/g, "");
   // "1.736,72" / "15.000" (pt) e "1,000.50" / "50,000" (en).
   if (/^\d{1,3}([.,]\d{3})+([.,]\d{1,2})?$/.test(n)) {
@@ -219,7 +223,7 @@ function jfParseAmount(num, suffix) {
   return value;
 }
 
-const jfCurrencyCode = (sym) => {
+export const jfCurrencyCode = (sym?: string) => {
   const s = (sym || "").toUpperCase();
   if (s === "R$" || s === "BRL") return "BRL";
   if (s === "€" || s === "EUR") return "EUR";
@@ -227,12 +231,15 @@ const jfCurrencyCode = (sym) => {
   return "USD";
 };
 
+export type Period = "month" | "year" | "hour";
+export interface Salary { min: number; max: number; currency: string; period: Period }
+
 // Devolve { min, max, currency, period: "month"|"year"|"hour" } ou null.
 // Valor sem palavra de salário por perto e com cara de benefício é ignorado.
-function jfParseSalary(raw) {
+export function jfParseSalary(raw: string): Salary | null {
   const cased = jfStripAccents(raw);
   const lower = cased.toLowerCase();
-  const candidates = [];
+  const candidates: (Salary & { salaryWord: boolean })[] = [];
   JF_SALARY_RE.lastIndex = 0;
   for (let m = JF_SALARY_RE.exec(cased); m; m = JF_SALARY_RE.exec(cased)) {
     const before = lower.slice(Math.max(0, m.index - 45), m.index);
@@ -245,7 +252,7 @@ function jfParseSalary(raw) {
     const a = jfParseAmount(m[2], m[3]);
     const b = m[5] ? jfParseAmount(m[5], m[6]) : a;
     const currency = jfCurrencyCode(m[1]);
-    let period = /(\/\s*(mes|month|mo)\b|por mes|mensa|per month|monthly|a month|\bmes\b)/.test(after) ? "month"
+    let period: Period | null = /(\/\s*(mes|month|mo)\b|por mes|mensa|per month|monthly|a month|\bmes\b)/.test(after) ? "month"
       : /(\/\s*(ano|year|yr)\b|por ano|anua|per year|annual|yearly|a year|\bano\b)/.test(after) ? "year"
       : /(\/\s*(h|hora|hour|hr)\b|por hora|per hour|hourly|an hour)/.test(after) ? "hour"
       : null;
@@ -260,27 +267,27 @@ function jfParseSalary(raw) {
 }
 
 // Converte para mensal: ano/12, hora×160 (40h/semana).
-function jfMonthly(value, period) {
+export function jfMonthly(value: number, period: Period) {
   if (period === "year") return value / 12;
   if (period === "hour") return value * 160;
   return value;
 }
 
 // --- Anos de experiência -----------------------------------------------------
-const JF_NUMBER_WORDS = {
+export const JF_NUMBER_WORDS: Record<string, number> = {
   um: 1, uma: 1, dois: 2, duas: 2, tres: 3, quatro: 4, cinco: 5, seis: 6, sete: 7,
   oito: 8, nove: 9, dez: 10, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6,
   seven: 7, eight: 8, nine: 9, ten: 10
 };
-const JF_YEARS_RE = new RegExp(
+export const JF_YEARS_RE = new RegExp(
   `(?:^|[^a-z0-9])(\\d{1,2}|${Object.keys(JF_NUMBER_WORDS).join("|")})\\s*(\\+|(?:a|-|–|to)\\s*\\d{1,2})?\\s*(?:anos?|years?|yrs?)(?![a-z])`,
   "g"
 );
-const JF_EXPERIENCE_CONTEXT = /(experien|atuacao|atuando|vivencia|hands-on|working|trabalhando|\bexp\b)/;
+export const JF_EXPERIENCE_CONTEXT = /(experien|atuacao|atuando|vivencia|hands-on|working|trabalhando|\bexp\b)/;
 
 // Maior "mínimo de anos" pedido no texto (normalizado), ou null se não pede.
-function jfParseExperience(text) {
-  let most = null;
+export function jfParseExperience(text: string) {
+  let most: number | null = null;
   JF_YEARS_RE.lastIndex = 0;
   for (let m = JF_YEARS_RE.exec(text); m; m = JF_YEARS_RE.exec(text)) {
     const around = text.slice(Math.max(0, m.index - 50), m.index + m[0].length + 40);
@@ -295,7 +302,7 @@ function jfParseExperience(text) {
 // --- Domínios ----------------------------------------------------------------
 // "https://www.Exemplo.com.br/x" → "exemplo.com.br". O LinkedIn embrulha links
 // externos em linkedin.com/safety/go/?url=...; desembrulha antes.
-function jfHost(url) {
+export function jfHost(url: string): string | null {
   try {
     const u = new URL(url, "https://www.linkedin.com");
     if (/linkedin\.com$/.test(u.hostname) && u.pathname.startsWith("/safety/go")) {
@@ -309,22 +316,15 @@ function jfHost(url) {
 }
 
 // Entrada do usuário ("https://www.hotmart.com/x", "hotmart.com") → "hotmart.com".
-function jfDomainEntry(entry) {
+export function jfDomainEntry(entry: string) {
   const e = entry.trim().toLowerCase().replace(/^[a-z]+:\/\//, "").replace(/^www\./, "");
   return e.split(/[/?#\s]/)[0] || null;
 }
 
-const jfHostMatches = (host, domain) => host === domain || host.endsWith(`.${domain}`);
+export const jfHostMatches = (host: string, domain: string) => host === domain || host.endsWith(`.${domain}`);
 
 // Domínios citados como texto ("passabot.com"), para links que não são <a>.
-function jfTextDomains(text) {
+export function jfTextDomains(text: string) {
   return [...text.matchAll(/(?:^|[^a-z0-9.@-])((?:[a-z0-9-]+\.)+(?:com|br|io|app|net|org|dev|ai|co|me|ly|gg|xyz|info|site|online|store|shop)(?:\.br)?)(?![a-z0-9])/g)]
     .map((m) => m[1].replace(/^www\./, ""));
-}
-
-if (typeof module !== "undefined") {
-  module.exports = {
-    jfStripAccents, jfFindPlaces, jfResolvePlace, jfIsAncestorOrSelf, jfCountryOf, jfPlaceLabel,
-    jfParseSalary, jfMonthly, jfParseExperience, jfHost, jfDomainEntry, jfHostMatches, jfTextDomains
-  };
 }

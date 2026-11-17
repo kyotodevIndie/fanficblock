@@ -102,7 +102,7 @@ O painel tem busca e mostra quantos filtros estão ativos. Tudo salva sozinho.
 
 ## Ordem de precedência
 
-A primeira regra que decide, decide (`jfClassify` em [`classify.js`](../classify.js)):
+A primeira regra que decide, decide (`jfClassify` em [`src/classify.ts`](../src/classify.ts)):
 
 1. **Esconder sempre se tiver** → some (até vaga e autor liberado)
 2. **Autor/empresa bloqueado** → some (até vaga)
@@ -140,28 +140,31 @@ derrubam por falta de informação.
 
 | Arquivo | O que faz |
 | --- | --- |
-| `manifest.json` | Configuração da extensão (Manifest V3, só permissão `storage`) |
-| `defaults.js` | Configuração padrão e listas de palavras |
-| `extract.js` | Extrai local, salário, anos de experiência e domínios do texto |
-| `classify.js` | Decide se um post fica (sem DOM, testável no Node) |
-| `stats.js` | Fanficômetro: categorias, contagem por dia, tempo poupado |
-| `query.js` | Gerador de query de busca do LinkedIn (AND/OR/NOT) do painel |
-| `support.js` / `icons/pix-qr.svg` | Pix do card de apoio, gerados por `tools/pix.py` |
+| `src/defaults.ts` | Configuração padrão e listas de palavras (e o tipo `Settings`) |
+| `src/extract.ts` | Extrai local, salário, anos de experiência e domínios do texto |
+| `src/classify.ts` | Decide se um post fica (sem DOM, testável no Node) |
+| `src/stats.ts` | Fanficômetro: categorias, contagem por dia, tempo poupado |
+| `src/query.ts` | Gerador de query de busca do LinkedIn (AND/OR/NOT) do painel |
+| `src/content.ts` | Content script: encontra os posts, extrai texto/autor/cabeçalho, esconde |
+| `src/popup.ts` | Lógica do painel |
+| `src/support.ts` / `icons/pix-qr.svg` | Pix do card de apoio, gerados por `tools/pix.py` |
+| `extension/manifest.json` | Configuração da extensão (Manifest V3, só permissão `storage`) |
+| `extension/content.css` | Barrinha "Mostrar" e etiqueta de motivo no feed |
+| `extension/popup.html` / `extension/popup.css` | Painel (shadcn, zinc escuro) |
+| `icons/` | Ícones gerados do logo transparente |
+| `scripts/build.ts` | Monta a extensão em `build/`: `extension/` + ícones + `src/content.ts` e `src/popup.ts` empacotados com esbuild (`npm run build`, ou `npm run watch`) |
 | `tools/pix.py` | Gera o Pix: `pip install segno` e `python3 tools/pix.py --key ... --name ... --city ...` |
 | `site/` | Página do projeto (GitHub Pages). `tools/build-site.sh` monta em `dist/site` com o código da extensão, e o workflow `.github/workflows/pages.yml` publica a cada push |
-| `tools/pack.sh` | Gera o .zip das lojas em `dist/` (roda os testes antes) |
+| `tools/pack.sh` | Gera o .zip da extensão em `dist/` (roda typecheck e testes antes) |
+| `.github/workflows/release.yml` | A cada tag `v*`, publica o .zip numa release do GitHub (`fanficblock.zip`, o link de instalação) |
 | `store/` | Ficha das lojas (`LISTING.md`), imagens e `assets.html`, que gera as imagens com `tools/store-assets.sh` |
-| `content.js` | Encontra os posts, extrai texto/autor/cabeçalho, esconde |
-| `content.css` | Barrinha "Mostrar" e etiqueta de motivo no feed |
-| `popup.html` / `popup.css` / `popup.js` | Painel (shadcn, zinc escuro) |
-| `icons/` | Ícones gerados do logo transparente |
-| `test/run.js` | Testes: `node test/run.js` |
+| `test/run.ts` | Testes: `npm test` |
 | `test/posts/` | Posts de exemplo: `sim-*` ficam, `nao-*` somem |
 | `test/feed-sdui.txt` | Posts do feed real (resumidos, nomes fictícios) com o resultado esperado |
 | `test/mock-feed.html` | Feed falso no formato antigo |
 | `test/mock-feed-sdui.html` | Feed falso no formato novo (`?rec`, `?block=in/fulano`) |
 | `test/popup-preview.html` | Prévia do painel fora da extensão (`?demo`) |
 
-Para os mocks e a prévia: `python3 -m http.server` na pasta do projeto e abra
-`/test/<arquivo>.html` (a prévia aceita `?demo` para números de exemplo nas
+Para os mocks e a prévia: `npm run build`, depois `python3 -m http.server` na
+pasta do projeto e abra `/test/<arquivo>.html` (a prévia aceita `?demo` para números de exemplo nas
 estatísticas).

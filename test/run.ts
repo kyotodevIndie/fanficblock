@@ -1,14 +1,20 @@
-// Roda: node test/run.js
+// Roda: npm test (ou node test/run.ts)
 // Arquivos em posts/ começando com "sim-" devem ficar; com "nao-", sumir.
-const fs = require("fs");
-const path = require("path");
-const { jfCompile, jfClassify, jfSegment, jfProfileId } = require("../classify.js");
-const JF_DEFAULTS = new Function(
-  fs.readFileSync(path.join(__dirname, "../defaults.js"), "utf8") + ";return JF_DEFAULTS"
-)();
+import fs from "node:fs";
+import path from "node:path";
+import { jfClassify, jfCompile, jfProfileId, jfSegment, type PostMeta } from "../src/classify.ts";
+import { JF_DEFAULTS, type Settings } from "../src/defaults.ts";
+import * as x from "../src/extract.ts";
+import * as q from "../src/query.ts";
+import * as st from "../src/stats.ts";
+
+const __dirname = import.meta.dirname;
+// [nome, texto, ajustes, deve ficar?, meta, autor ou link de vaga]
+type Case = [string, string, Partial<Settings>, boolean, PostMeta?, string?];
+type JobCase = [string, string, Partial<Settings>, boolean, PostMeta?, boolean?];
 
 let failed = 0;
-const check = (name, got, want, reason) => {
+const check = (name: string, got: boolean, want: boolean, reason: string) => {
   const ok = got === want;
   if (!ok) failed++;
   console.log(`${ok ? "ok  " : "FAIL"} ${got ? "fica " : "some "} ${name}  (${reason})`);
@@ -25,13 +31,13 @@ for (const file of fs.readdirSync(dir).sort()) {
 console.log("\n-- só recrutadores --");
 const rec = jfCompile({ ...JF_DEFAULTS, recruitersOnly: true });
 const vaga = "Estamos contratando dev React!";
-for (const [author, want] of [
+for (const [author, want] of ([
   ["Ana Souza • 2º Tech Recruiter | Talent Acquisition na Acme 2h •", true],
   ["Bruno Lima Recrutadora de TI | R&S", true],
   ["Carla Dias Analista de RH 1d", true],
   ["Diego Alves Senior Dev | Open to opportunities", false],
   ["Acme Inc 12.345 seguidores Promovido", false]
-]) {
+] as [string, boolean][])) {
   const { keep, reason } = jfClassify(vaga, false, rec, author);
   check(author, keep, want, reason);
 }
@@ -40,7 +46,7 @@ check("recrutador postando textão", keep, false, reason);
 
 console.log("\n-- filtros de vaga e devaneio --");
 const cielo = "Vaga Analista SRE Júnior | Cielo | Híbrido (Barueri/SP) com auxílio trabalho remoto, CLT";
-const cases = [
+const cases: [string, string, Partial<Settings>, boolean][] = [
   // [nome, texto, ajustes, deve ficar?]
   ["excluir híbrido: vaga híbrida", cielo, { exclude: { modality: ["hybrid"] } }, false],
   ["excluir remoto: híbrida que cita remoto", cielo, { exclude: { modality: ["remote"] } }, true],
@@ -71,7 +77,7 @@ for (const [name, text, extra, want] of cases) {
 console.log("\n-- fase 1: patrocinado, caça-engajamento, repost, autores --");
 const off = { onlyJobs: false };
 const repostHeader = "Fulano Silva reposted this Ana Souza • 2nd Dev na Acme";
-const phase1 = [
+const phase1: Case[] = [
   // [nome, texto, ajustes, deve ficar?, meta, autor]
   ["isca: 'comenta GUIA que eu te mando'", "Montei um guia de prompts. Comenta \"GUIA\" que eu te mando no privado.", off, false],
   ["isca: 'Comenta EU' maiúsculo", "Fiz uma planilha de controle. Comenta EU que eu envio pra você.", off, false],
@@ -101,26 +107,25 @@ for (const [name, text, extra, want, meta = {}, author = ""] of phase1) {
   const { keep, reason } = jfClassify(text, false, jfCompile({ ...JF_DEFAULTS, ...extra }), author, meta);
   check(name, keep, want, reason);
 }
-for (const [input, want] of [
+for (const [input, want] of ([
   ["https://br.linkedin.com/in/Fulano-123/?trk=x", "in/fulano-123"],
   ["/in/jo%C3%A3o/", "in/joão"],
   ["linkedin.com/company/acme/posts", "company/acme"],
   ["Marcos Influencer", null]
-]) {
+] as [string, string | null][])) {
   const got = jfProfileId(input);
   check(`perfil: ${input}`, got === want, true, String(got));
 }
 
 console.log("\n-- fase 2: vagas avançadas --");
-const x = require("../extract.js");
-const N = (t) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+const N = (t: string) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 const cieloSP = "Vaga Analista SRE Júnior | Cielo | Híbrido (Barueri/SP), CLT";
 const recife = "Estamos contratando dev React para atuar presencialmente em Recife - PE. CLT.";
 const remoteBR = "Vaga dev Node 100% remoto, Brasil. PJ.";
 const remoteLatam = "We're hiring! Senior Backend Engineer, Remote LATAM, contractor.";
 const noPlace = "Vaga de QA de dados, CLT, júnior.";
 const jns = "Vaga Assistente Administrativo. Salário a combinar. Benefícios: VR R$ 1.042,00 por mês, VT.";
-const phase2 = [
+const phase2: JobCase[] = [
   // [nome, texto, ajustes, deve ficar?, meta]
   ["local: Barueri/SP com filtro SP", cieloSP, { locations: ["SP"] }, true],
   ["local: Recife com filtro SP", recife, { locations: ["SP"] }, false],
@@ -179,8 +184,8 @@ for (const [name, text, extra, want, meta = {}, jobLink = false] of phase2) {
   const { keep, reason } = jfClassify(text, jobLink, jfCompile({ ...JF_DEFAULTS, ...extra }), "", meta);
   check(name, keep, want, reason);
 }
-const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-for (const [name, got, want] of [
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+for (const [name, got, want] of ([
   ["places: Barueri/SP", x.jfFindPlaces("Híbrido (Barueri/SP)"), ["barueri"]],
   ["places: Porto Alegre ganha de Porto", x.jfFindPlaces("Porto Alegre - RS"), ["porto-alegre"]],
   ["salary: 'R$ 1.736,72'", x.jfParseSalary("Salário: R$ 1.736,72"), { min: 1736.72, max: 1736.72, currency: "BRL", period: "month" }],
@@ -189,13 +194,12 @@ for (const [name, got, want] of [
   ["salary: rodada de investimento não é salário", x.jfParseSalary("A empresa captou R$ 50 milhões em rodada"), null],
   ["experience: 'três anos de experiência'", x.jfParseExperience(N("três anos de experiência")), 3],
   ["experience: '3 a 5 anos de experiência' = 3", x.jfParseExperience(N("de 3 a 5 anos de experiência")), 3]
-]) {
+] as [string, unknown, unknown][])) {
   check(name, same(got, want), true, JSON.stringify(got));
 }
 
 console.log("\n-- gerador de busca --");
-const q = require("../query.js");
-for (const [name, state, want] of [
+for (const [name, state, want] of ([
   ["vazio", {}, '(vaga OR contratando)'],
   ["uma tecnologia", { techs: ["react"] }, '(vaga OR contratando) AND React'],
   ["tecnologias, qualquer uma", { techs: ["react", "node"] }, '(vaga OR contratando) AND (React OR Node OR "Node.js")'],
@@ -204,14 +208,13 @@ for (const [name, state, want] of [
   ["completo", { lang: "both", techs: ["python"], seniority: "mid", modality: "remote", contract: "clt", location: "sp", exclude: ["intern", "talents"] },
     '(vaga OR contratando OR hiring) AND Python AND (pleno OR "mid-level") AND (remoto OR remote OR "home office") AND CLT AND ("São Paulo" OR SP) NOT estágio NOT "banco de talentos"'],
   ["opção desconhecida é ignorada", { seniority: "nada", techs: ["x"] }, '(vaga OR contratando)']
-]) {
+] as [string, Partial<q.QueryState>, string][])) {
   const got = q.jfBuildQuery(state);
   check(`busca: ${name}`, got === want, true, got);
 }
 check("busca: contagem", q.jfQueryCount({ techs: ["react", "node"], seniority: "mid", exclude: ["pj"] }) === 4, true, "4");
 
 console.log("\n-- fanficômetro --");
-const st = require("../stats.js");
 for (const [reason, want] of [
   ["patrocinado", "ads"], ["devaneio: fui demitido", "fluff"], ["caça-engajamento: marque alguem", "bait"],
   ["vendedor de curso: mentoria + lote", "course"], ["repost", "repost"], ["autor bloqueado: in/x", "blocked"],
@@ -226,7 +229,7 @@ stats = st.jfStatsAdd(stats, [{ hash: "d", cat: "bait" }], "2026-11-01");
 const sum = st.jfStatsSummary(stats, "2026-11-14");
 check("stats: hoje / 7 dias / total", sum.today === 1 && sum.week === 3 && sum.total === 4, true, JSON.stringify(sum));
 check("stats: tempo = 8 s por post", sum.seconds === 32, true, String(sum.seconds));
-let many = {};
+let many: st.Stats = st.JF_STATS_EMPTY;
 for (let i = 0; i < 40; i++) many = st.jfStatsAdd(many, [{ hash: `h${i}`, cat: "ads" }], `2026-10-${String(i % 31 + 1).padStart(2, "0")}`);
 check("stats: guarda no máximo 30 dias", Object.keys(many.days).length === 30, true, String(Object.keys(many.days).length));
 check("duração: 40 s / 12 min / 1 h 05 min", [st.jfDuration(40), st.jfDuration(720), st.jfDuration(3900)].join("|") === "40 s|12 min|1 h 05 min", true, "");
@@ -234,7 +237,7 @@ check("duração: 40 s / 12 min / 1 h 05 min", [st.jfDuration(40), st.jfDuration
 console.log("\n-- feed novo (SDUI), separando autor/post/comentários --");
 const feed = fs.readFileSync(path.join(__dirname, "feed-sdui.txt"), "utf8")
   .split("\n").filter((l) => !l.startsWith("# "));
-const blocks = [];
+const blocks: string[][] = [];
 for (const line of feed) {
   if (line.trim() === "Feed post") blocks.push([line]);
   else if (blocks.length && line.trim()) blocks[blocks.length - 1].push(line);
@@ -243,7 +246,7 @@ for (const block of blocks) {
   const expect = block.splice(1, 1)[0].split(" ");
   const { author, body, sponsored } = jfSegment(block);
   const meta = { header: author, sponsored };
-  const name = (author.split(/likes this|Followed by/).pop().trim() || body).slice(0, 40);
+  const name = (author.split(/likes this|Followed by/).pop()!.trim() || body).slice(0, 40);
   const normal = jfClassify(body, false, compiled, author, meta);
   check(name, normal.keep, expect[1] === "sim", normal.reason);
   const recruiter = jfClassify(body, false, rec, author, meta);

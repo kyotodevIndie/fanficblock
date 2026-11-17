@@ -1,0 +1,25 @@
+{
+  "name": "fanficblock",
+  "private": true,
+  "type": "module",
+  "description": "Tira as fanfics corporativas do seu feed do LinkedIn e deixa só o que importa: vaga.",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "build": "node scripts/build.ts",
+    "watch": "node scripts/build.ts --watch",
+    "typecheck": "tsc",
+    "test": "node test/run.ts",
+    "check": "npm run typecheck && npm test",
+    "pack": "tools/pack.sh",
+    "site": "tools/build-site.sh"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.3.7",
+    "@types/node": "^26.6.6",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  }
+}

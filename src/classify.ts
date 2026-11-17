@@ -1,26 +1,40 @@
 // Decide se um post fica ou some. Sem DOM aqui, para dar para testar no Node.
-// Extração de local/salário/experiência/domínios fica em extract.js.
+// Extração de local/salário/experiência/domínios fica em extract.ts.
 
-if (typeof module !== "undefined") {
-  Object.assign(globalThis, require("./extract.js"));
-}
+import type { Settings } from "./defaults.ts";
+import {
+  jfCountryOf, jfDomainEntry, jfFindPlaces, jfHost, jfHostMatches, jfIsAncestorOrSelf, jfMonthly,
+  jfParseExperience, jfParseSalary, jfPlaceLabel, jfResolvePlace, jfTextDomains, type Salary
+} from "./extract.ts";
 
-const jfNormalize = (s) =>
+export interface Verdict { keep: boolean; reason: string }
+// Palavra da configuração já compilada. group junta plural e hashtag.
+export interface Word { word: string; re: RegExp; group: string }
+export interface Term { word: string; re: RegExp }
+// Autor ou lugar: id conhecido (perfil, lugar) ou, se não reconhecer, o texto.
+export type Entry = { entry: string; id: string; re?: undefined } | { entry: string; id?: undefined; re: RegExp };
+// authorId: "in/fulano"; header: cabeçalho do card; links: URLs do post.
+export interface PostMeta { authorId?: string | null; header?: string; sponsored?: boolean; links?: string[] }
+export interface JobInfo { salary: Salary | null; places: string[]; remote: boolean; known: string[] }
+export interface Segment { author: string; body: string; bodyEnd: number; headerEnd: number; sponsored: boolean }
+export type Compiled = ReturnType<typeof jfCompile>;
+
+export const jfNormalize = (s: string) =>
   s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
-const jfEscapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+export const jfEscapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // Limite de palavra "manual": \b não funciona com # nem com caracteres acentuados.
-const jfToRegex = (word) =>
+export const jfToRegex = (word: string) =>
   new RegExp(`(^|[^a-z0-9#])${jfEscapeRe(jfNormalize(word.trim()))}(?![a-z0-9])`);
 
 // "emprego", "empregos" e "#emprego" contam como a mesma palavra fraca.
-const jfGroup = (word) => jfNormalize(word.trim()).replace(/^#/, "").replace(/s$/, "");
+export const jfGroup = (word: string) => jfNormalize(word.trim()).replace(/^#/, "").replace(/s$/, "");
 
 // --- Filtros de vaga --------------------------------------------------------
 // Cada grupo tem opções; a pessoa marca as que NÃO quer ver. Uma vaga some se
 // tudo que foi detectado nela está marcado ("CLT ou PJ" só some se os dois estiverem).
-const JF_FACETS = {
+export const JF_FACETS: Record<string, { label: string; options: Record<string, { label: string; words: string[] }> }> = {
   modality: {
     label: "Modelo",
     options: {
@@ -50,24 +64,24 @@ const JF_FACETS = {
 };
 
 // Palavras que indicam inglês ou português, para "esconder vagas em inglês".
-const JF_EN_WORDS = ["the", "and", "to", "of", "you", "we", "for", "with", "is", "are", "our", "your", "will", "in", "be", "this"];
-const JF_PT_WORDS = ["de", "que", "para", "com", "voce", "uma", "nao", "por", "os", "as", "no", "na", "em", "do", "da", "e"];
+export const JF_EN_WORDS = ["the", "and", "to", "of", "you", "we", "for", "with", "is", "are", "our", "your", "will", "in", "be", "this"];
+export const JF_PT_WORDS = ["de", "que", "para", "com", "voce", "uma", "nao", "por", "os", "as", "no", "na", "em", "do", "da", "e"];
 
 // "Não é sobre X, é sobre Y" — o clássico do devaneio.
-const JF_FLUFF_PATTERNS = [/(^|[^a-z])nao e sobre [^.!?\n]{1,60}e sobre /, /(^|[^a-z])it'?s not about [^.!?\n]{1,60}it'?s about /];
+export const JF_FLUFF_PATTERNS = [/(^|[^a-z])nao e sobre [^.!?\n]{1,60}e sobre /, /(^|[^a-z])it'?s not about [^.!?\n]{1,60}it'?s about /];
 
 // Caça-engajamento clássico: pede para comentar uma PALAVRA ou "palavra" e
 // promete mandar algo em troca. Roda no texto original (precisa das maiúsculas),
 // por isso o verbo aceita inicial maiúscula ou minúscula explicitamente.
-const JF_BAIT_CTA_RE =
+export const JF_BAIT_CTA_RE =
   /(^|[^\p{L}])([Cc]omenta|[Cc]omente|[Dd]igite|[Ee]screva|[Rr]esponda|[Cc]omment|[Tt]ype|[Ww]rite|[Rr]eply)(?![\p{L}])[^.!?\n]{0,30}?(["“”'«][^"“”'»]{2,20}["“”'»]|(?<![\p{L}])\p{Lu}{3,}(?![\p{L}]))[^.!?\n]{0,80}?(te mando|te envio|eu mando|eu envio|vou te mandar|vou mandar|vou enviar|receber|recebe|i'?ll send|send you|dm you|i'?ll dm)/u;
 
 // Frases de venda que têm "vaga" mas não são vaga de emprego.
-const JF_NOT_JOB_RE =
+export const JF_NOT_JOB_RE =
   /(garanta (a )?sua vaga|reserve (a )?sua vaga|vagas limitadas|ultimas vagas|poucas vagas|vagas esgotadas|vagas para (a )?(turma|mentoria|imersao|comunidade)|vaga na (turma|mentoria|imersao|comunidade))/g;
 
 // Sinônimos de tecnologia: escrever um conta como qualquer outro do grupo.
-const JF_TECH_ALIASES = [
+export const JF_TECH_ALIASES = [
   ["node", "node.js", "nodejs", "node js"],
   ["react native", "react-native", "reactnative"],
   ["react", "react.js", "reactjs"],
@@ -84,10 +98,10 @@ const JF_TECH_ALIASES = [
 ];
 
 // Cabeçalho de repost: "Fulano reposted this", "Fulano republicou isso".
-const JF_REPOST_RE = /(^|\s)(reposted|repostou|republicou|compartilhou|reshared)(\s|$)/;
+export const JF_REPOST_RE = /(^|\s)(reposted|repostou|republicou|compartilhou|reshared)(\s|$)/;
 
 // "in/fulano", "company/acme" a partir de URL, caminho ou slug.
-function jfProfileId(value) {
+export function jfProfileId(value: unknown) {
   const m = String(value).toLowerCase().match(/(?:^|\/)(in|company|school|showcase)\/([^/?#\s]+)/);
   if (!m) return null;
   let slug = m[2];
@@ -97,42 +111,42 @@ function jfProfileId(value) {
 
 // Entrada de lista de autores: URL/caminho de perfil vira id estável; o resto
 // é tratado como nome (comparado com nome + título de quem postou).
-function jfAuthorEntries(list) {
+export function jfAuthorEntries(list: string[] | undefined): Entry[] {
   return (list || []).filter((w) => w.trim()).map((entry) => {
     const id = jfProfileId(entry);
     return id ? { entry, id } : { entry, re: jfToRegex(entry) };
   });
 }
 
-function jfAuthorMatch(entries, authorId, authorText) {
+export function jfAuthorMatch(entries: Entry[], authorId: string | null | undefined, authorText: string) {
   const text = jfNormalize(authorText || "");
-  return entries.find((e) => (e.id ? e.id === authorId : e.re.test(text)));
+  return entries.find((e) => (e.re ? e.re.test(text) : e.id === authorId));
 }
 
 // Termo de tecnologia com sinônimos: "node" também pega "Node.js" e "nodejs".
-function jfTermRegex(word) {
+export function jfTermRegex(word: string) {
   const norm = jfNormalize(word.trim());
   const variants = JF_TECH_ALIASES.find((group) => group.includes(norm)) || [norm];
   return new RegExp(`(^|[^a-z0-9#+.])(${variants.map(jfEscapeRe).join("|")})(?![a-z0-9#+]|\\.[a-z])`);
 }
 
 // Lugar que o usuário digitou: id conhecido ou, se não reconhecer, o texto.
-function jfLocationEntries(list) {
+export function jfLocationEntries(list: string[] | undefined): Entry[] {
   return (list || []).filter((w) => w.trim()).map((entry) => {
     const id = jfResolvePlace(entry);
     return id ? { entry, id } : { entry, re: jfToRegex(entry) };
   });
 }
 
-function jfCompile(settings) {
-  const clean = (list) => (list || []).filter((w) => w.trim());
-  const words = (list) => clean(list).map((w) => ({ word: w, re: jfToRegex(w), group: jfGroup(w) }));
-  const terms = (list) => clean(list).map((w) => ({ word: w, re: jfTermRegex(w) }));
+export function jfCompile(settings: Settings) {
+  const clean = (list: string[] | undefined) => (list || []).filter((w) => w.trim());
+  const words = (list: string[] | undefined): Word[] => clean(list).map((w) => ({ word: w, re: jfToRegex(w), group: jfGroup(w) }));
+  const terms = (list: string[] | undefined): Term[] => clean(list).map((w) => ({ word: w, re: jfTermRegex(w) }));
 
   const exclude = settings.exclude || {};
   const facets = Object.entries(JF_FACETS).map(([name, facet]) => ({
     name,
-    excluded: new Set(exclude[name] || []),
+    excluded: new Set<string>(exclude[name] || []),
     options: Object.entries(facet.options).map(([id, o]) => ({ id, label: o.label, words: words(o.words) }))
   }));
 
@@ -163,8 +177,8 @@ function jfCompile(settings) {
     blockCourses: Boolean(settings.blockCourses),
     courseWords: words(settings.courseWords),
     courseSaleWords: words(settings.courseSaleWords),
-    courseDomains: clean(settings.courseDomains).map(jfDomainEntry).filter(Boolean),
-    blockedDomains: clean(settings.blockedDomains).map(jfDomainEntry).filter(Boolean),
+    courseDomains: clean(settings.courseDomains).flatMap((d) => jfDomainEntry(d) ?? []),
+    blockedDomains: clean(settings.blockedDomains).flatMap((d) => jfDomainEntry(d) ?? []),
     blockFluff: Boolean(settings.blockFluff),
     fluffStrong: words(settings.fluffStrong),
     fluffWeak: words(settings.fluffWeak),
@@ -182,11 +196,11 @@ function jfCompile(settings) {
   };
 }
 
-const firstHit = (list, text) => list.find((k) => k.re.test(text));
+export const firstHit = <T extends { re: RegExp }>(list: T[], text: string) => list.find((k) => k.re.test(text));
 
 // Palavras diferentes (por grupo) da lista que aparecem no texto.
-function distinctHits(list, text) {
-  const hits = new Map();
+export function distinctHits(list: Word[], text: string) {
+  const hits = new Map<string, string>();
   for (const k of list) {
     if (!hits.has(k.group) && k.re.test(text)) hits.set(k.group, k.word);
   }
@@ -212,7 +226,7 @@ function distinctHits(list, text) {
 //  12. Filtros de vaga (recrutador, modelo, contratação, senioridade, tech,
 //      idioma, palavras, local, salário, experiência, informação mínima)
 // meta.links: URLs dos links do post (para domínios).
-function jfClassify(rawText, hasJobLink, c, authorText = "", meta = {}) {
+export function jfClassify(rawText: string, hasJobLink: boolean, c: Compiled, authorText = "", meta: PostMeta = {}): Verdict {
   const text = jfNormalize(rawText);
 
   const blocked = firstHit(c.block, text);
@@ -319,12 +333,12 @@ function jfClassify(rawText, hasJobLink, c, authorText = "", meta = {}) {
 
 // O que a vaga informa. "known" lista os campos achados, para "informação mínima":
 // local ou modelo, contratação, senioridade, salário, link/e-mail para candidatura.
-function jfJobInfo(rawText, text, hasJobLink, c) {
+export function jfJobInfo(rawText: string, text: string, hasJobLink: boolean, c: Compiled): JobInfo {
   const salary = jfParseSalary(rawText);
   const places = jfFindPlaces(rawText);
-  const facet = (name) => c.facets.find((f) => f.name === name).options.filter((o) => firstHit(o.words, text)).map((o) => o.id);
+  const facet = (name: string) => c.facets.find((f) => f.name === name)!.options.filter((o) => firstHit(o.words, text)).map((o) => o.id);
   const modality = facet("modality");
-  const known = [];
+  const known: string[] = [];
   if (places.length || modality.length) known.push("local");
   if (facet("contract").length) known.push("contratação");
   if (facet("seniority").length) known.push("senioridade");
@@ -338,14 +352,14 @@ function jfJobInfo(rawText, text, hasJobLink, c) {
 // Devolve o motivo se a vaga é de um lugar fora da lista, ou null.
 // Sem lugar no texto = desconhecido (fica, a não ser com "exigir localização").
 // Vaga remota compara só o país/região: "Remote LATAM" serve para quem quer SP.
-function jfLocationCheck(rawText, text, info, c) {
+export function jfLocationCheck(rawText: string, text: string, info: JobInfo, c: Compiled) {
   if (!info.places.length) {
     // Remoto sem país também é resposta para "onde é".
     if (info.remote || c.locations.some((l) => l.re && l.re.test(text))) return null;
     return c.requireLocation ? "vaga sem localização" : null;
   }
   if (!c.locations.length) return null;
-  const near = (a, b) => jfIsAncestorOrSelf(a, b) || jfIsAncestorOrSelf(b, a);
+  const near = (a: string, b: string) => jfIsAncestorOrSelf(a, b) || jfIsAncestorOrSelf(b, a);
   const ok = c.locations.some((l) => {
     if (l.re) return l.re.test(text);
     return info.places.some((p) => near(l.id, p) || (info.remote && near(jfCountryOf(l.id), jfCountryOf(p))));
@@ -355,13 +369,13 @@ function jfLocationCheck(rawText, text, info, c) {
 }
 
 // Hosts dos links do post, mais domínios escritos no texto.
-function jfPostHosts(text, links) {
-  return [...(links || []).map(jfHost).filter(Boolean), ...jfTextDomains(text)];
+export function jfPostHosts(text: string, links: string[] | undefined) {
+  return [...(links || []).flatMap((l) => jfHost(l) || []), ...jfTextDomains(text)];
 }
 
 // Venda de curso/mentoria/ebook: precisa de produto E sinal de venda (ou link de
 // plataforma de venda). Conteúdo gratuito sem preço não é venda.
-function jfCourseSignal(text, c, links) {
+export function jfCourseSignal(text: string, c: Compiled, links: string[] | undefined) {
   const hosts = jfPostHosts(text, links);
   const platform = c.courseDomains.find((d) => hosts.some((h) => jfHostMatches(h, d)));
   const product = firstHit(c.courseWords, text);
@@ -374,7 +388,7 @@ function jfCourseSignal(text, c, links) {
   return price ? `${product.word} + preço` : null;
 }
 
-function jfJobSignal(rawNormText, hasJobLink, c) {
+export function jfJobSignal(rawNormText: string, hasJobLink: boolean, c: Compiled): Verdict {
   if (hasJobLink) return { keep: true, reason: "link de vaga" };
   const text = rawNormText.replace(JF_NOT_JOB_RE, " ");
 
@@ -388,7 +402,7 @@ function jfJobSignal(rawNormText, hasJobLink, c) {
 
 // Devolve o motivo se for devaneio, ou null. Em vaga, só frase forte derruba:
 // vaga de verdade fala "liderança", "jornada de trabalho", "sucesso do cliente"...
-function jfFluffSignal(text, c, isJob) {
+export function jfFluffSignal(text: string, c: Compiled, isJob: boolean) {
   if (JF_FLUFF_PATTERNS.some((re) => re.test(text))) return "\"não é sobre X, é sobre Y\"";
   const strong = firstHit(c.fluffStrong, text);
   if (strong) return strong.word;
@@ -399,7 +413,7 @@ function jfFluffSignal(text, c, isJob) {
 
 // Devolve o motivo se for caça-engajamento, ou null. Pergunta solta
 // ("concorda?") é fraca: sozinha não derruba ninguém.
-function jfBaitSignal(rawText, text, c) {
+export function jfBaitSignal(rawText: string, text: string, c: Compiled) {
   if (JF_BAIT_CTA_RE.test(rawText)) return "\"comenta PALAVRA que eu te mando\"";
   const strong = firstHit(c.baitStrong, text);
   if (strong) return strong.word;
@@ -410,10 +424,10 @@ function jfBaitSignal(rawText, text, c) {
 // Conta ocorrências de palavras comuns de cada língua, depois de tirar links,
 // hashtags e termos técnicos (React, cloud, deploy...) — esses aparecem em
 // inglês em qualquer vaga de tecnologia e não dizem nada sobre a língua.
-function jfIsEnglish(text, c) {
+export function jfIsEnglish(text: string, c: Compiled) {
   let clean = text.replace(/https?:\S+|#\S+|\S+@\S+/g, " ");
   for (const k of c.tech) clean = clean.replace(new RegExp(k.re.source, "g"), " ");
-  const count = (list) => list.reduce((n, re) => n + (clean.match(new RegExp(re.source, "g")) || []).length, 0);
+  const count = (list: RegExp[]) => list.reduce((n, re) => n + (clean.match(new RegExp(re.source, "g")) || []).length, 0);
   const en = count(c.en);
   const pt = count(c.pt);
   return en >= 5 && en > pt * 1.5;
@@ -426,22 +440,22 @@ function jfIsEnglish(text, c) {
 // Então: até o horário é autor; depois, até os números de reação, é o post.
 
 // "4h", "6d", "• 5h", "2h • Edited", "4 hours ago", "1 sem", "3 d" ...
-const JF_TIME_RE =
+export const JF_TIME_RE =
   /(^|•\s*)\d{1,2}\s?(minutes?|minutos?|hours?|horas?|days?|dias?|weeks?|semanas?|months?|meses|years?|anos?|min|mo|yr|sem|s|m|h|d|w|y|a)(\s|•|$)/;
-const JF_PROMOTED_RE = /^(promoted|promovido|patrocinado)(\s+(by|por)\s.*)?$/;
+export const JF_PROMOTED_RE = /^(promoted|promovido|patrocinado)(\s+(by|por)\s.*)?$/;
 // Linha que é só número de reação/comentário: "324", "2,548", "21 reactions21".
-const JF_COUNT_RE =
+export const JF_COUNT_RE =
   /^\d[\d.,]*\s*(k|mil|reactions?|reacoes|comments?|comentarios|reposts?|compartilhamentos?)?\s*\d*$/;
 // Linhas de interface que não são conteúdo.
-const JF_SKIP_RE =
+export const JF_SKIP_RE =
   /^(feed post|publicacao no feed|post do feed|follow|seguir|connect|conectar|show translation|see translation|ver traducao|(…|\.\.\.)\s*(more|mais|ver mais)|visit my website|view my services|•\s*(1st|2nd|3rd\+?|following|1º|2º|3º\+?|seguindo)|\*)$/;
 
 // lines: textos não vazios na ordem do DOM.
 // Devolve { author, body, bodyEnd, headerEnd, sponsored } — bodyEnd é o índice
 // (exclusivo) onde o post acaba; headerEnd, o índice do horário (-1 se não achou).
-function jfSegment(lines) {
+export function jfSegment(lines: string[]): Segment {
   const norm = lines.map((l) => jfNormalize(l.replace(/\s+/g, " ").trim()));
-  const keep = (from, to) =>
+  const keep = (from: number, to: number) =>
     lines.slice(from, to).filter((_, i) => !JF_SKIP_RE.test(norm[from + i])).join(" ");
 
   // Em anúncio, "Promoted" aparece no cabeçalho, no lugar do horário.
@@ -454,8 +468,4 @@ function jfSegment(lines) {
     if (JF_COUNT_RE.test(norm[i])) { end = i; break; }
   }
   return { author: keep(0, time), body: keep(time + 1, end), bodyEnd: end, headerEnd: time, sponsored };
-}
-
-if (typeof module !== "undefined") {
-  module.exports = { jfCompile, jfClassify, jfSegment, jfProfileId, jfTermRegex, JF_FACETS };
 }

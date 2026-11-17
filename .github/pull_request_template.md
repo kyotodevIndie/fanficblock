@@ -6,7 +6,7 @@
 <!-- Testes, mocks, prévia do painel, LinkedIn de verdade -->
 
 ## Checklist
-- [ ] `node test/run.js` passa sem nenhum `FALHOU`
+- [ ] `npm run check` passa (typecheck sem erro e testes sem nenhum `FAIL`)
 - [ ] Mudança no filtro tem teste (e vaga comum continua passando)
 - [ ] Nenhum dado sai do navegador e nenhuma permissão nova
 - [ ] Exemplos e fixtures com nomes fictícios

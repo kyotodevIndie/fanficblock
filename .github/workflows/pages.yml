@@ -23,8 +23,13 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Testes
-        run: node test/run.js
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Typecheck e testes
+        run: npm run check
       - name: Monta a página
         run: tools/build-site.sh
       - uses: actions/configure-pages@v5

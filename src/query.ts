@@ -2,7 +2,10 @@
 // a partir das opções escolhidas no painel. Sem DOM, para testar no Node.
 
 // Cada opção vira um grupo "(a OR b)". Valor com espaço ou símbolo vai entre aspas.
-const JF_QUERY_OPTIONS = {
+export type QueryField = "lang" | "tech" | "seniority" | "modality" | "contract" | "location" | "exclude";
+export interface QueryOption { label: string; terms: string[] }
+
+export const JF_QUERY_OPTIONS: Record<QueryField, { label: string; options: Record<string, QueryOption> }> = {
   lang: {
     label: "Idioma da vaga",
     options: {
@@ -105,14 +108,28 @@ const JF_QUERY_OPTIONS = {
   }
 };
 
-// Estado vazio do gerador. techs e exclude aceitam várias opções.
-const JF_QUERY_EMPTY = {
+// Estado do gerador. techs e exclude aceitam várias opções.
+export interface QueryState {
+  lang: string;
+  techs: string[];
+  techMode: string;
+  seniority: string;
+  modality: string;
+  contract: string;
+  location: string;
+  exclude: string[];
+}
+
+// Os campos de uma opção só, além do idioma.
+const SINGLE_FIELDS = ["seniority", "modality", "contract", "location"] as const;
+
+export const JF_QUERY_EMPTY: QueryState = {
   lang: "pt", techs: [], techMode: "any", seniority: "", modality: "", contract: "", location: "", exclude: []
 };
 
-const jfQuoteTerm = (term) => (/^[\p{L}\p{N}]+$/u.test(term) ? term : `"${term.replace(/"/g, "")}"`);
+export const jfQuoteTerm = (term: string) => (/^[\p{L}\p{N}]+$/u.test(term) ? term : `"${term.replace(/"/g, "")}"`);
 
-function jfQueryGroup(field, id) {
+export function jfQueryGroup(field: QueryField, id: string) {
   const terms = JF_QUERY_OPTIONS[field].options[id]?.terms;
   if (!terms) return null;
   const quoted = terms.map(jfQuoteTerm);
@@ -120,12 +137,12 @@ function jfQueryGroup(field, id) {
 }
 
 // Quantas escolhas restringem a busca (idioma não conta: é a base).
-function jfQueryCount(state) {
+export function jfQueryCount(state: Partial<QueryState>) {
   const s = { ...JF_QUERY_EMPTY, ...state };
-  return s.techs.length + s.exclude.length + ["seniority", "modality", "contract", "location"].filter((k) => s[k]).length;
+  return s.techs.length + s.exclude.length + SINGLE_FIELDS.filter((k) => s[k]).length;
 }
 
-function jfBuildQuery(state) {
+export function jfBuildQuery(state: Partial<QueryState>) {
   const s = { ...JF_QUERY_EMPTY, ...state };
   const parts = [jfQueryGroup("lang", s.lang) || jfQueryGroup("lang", "pt")];
 
@@ -138,7 +155,7 @@ function jfBuildQuery(state) {
     parts.push(terms.length === 1 ? terms[0] : `(${terms.join(" OR ")})`);
   }
 
-  for (const field of ["seniority", "modality", "contract", "location"]) {
+  for (const field of SINGLE_FIELDS) {
     const group = s[field] && jfQueryGroup(field, s[field]);
     if (group) parts.push(group);
   }
@@ -146,8 +163,4 @@ function jfBuildQuery(state) {
   const query = parts.join(" AND ");
   const not = s.exclude.map((id) => jfQueryGroup("exclude", id)).filter(Boolean);
   return not.length ? `${query} ${not.map((g) => `NOT ${g}`).join(" ")}` : query;
-}
-
-if (typeof module !== "undefined") {
-  module.exports = { JF_QUERY_OPTIONS, JF_QUERY_EMPTY, jfBuildQuery, jfQueryCount };
 }

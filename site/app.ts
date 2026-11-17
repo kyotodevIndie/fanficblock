@@ -1,13 +1,20 @@
 // Página do FanficBlock. O detector e o gerador usam o código da extensão
-// (defaults.js, classify.js, stats.js, query.js), carregado antes deste arquivo.
+// (src/), empacotado junto com este arquivo.
+import { jfClassify, jfCompile } from "../src/classify.ts";
+import { JF_DEFAULTS } from "../src/defaults.ts";
+import { JF_QUERY_EMPTY, JF_QUERY_OPTIONS, jfBuildQuery, type QueryField, type QueryState } from "../src/query.ts";
+import { JF_STAT_CATEGORIES, jfStatCategory } from "../src/stats.ts";
+import { JF_PIX } from "../src/support.ts";
 
-const $ = (sel) => document.querySelector(sel);
+// O HTML é nosso: o seletor sempre acha o elemento.
+const $ = <T extends HTMLElement = HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const ESCAPES: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" };
+const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ESCAPES[c]);
 
-let toastTimer;
-function toast(msg) {
+let toastTimer: ReturnType<typeof setTimeout> | undefined;
+function toast(msg: string) {
   const el = $("#toast");
   el.textContent = msg;
   el.classList.add("show");
@@ -22,7 +29,7 @@ async function rotate() {
   let i = 0;
   for (;;) {
     await sleep(2200);
-    const word = box.querySelector(".word");
+    const word = box.querySelector(".word")!;
     word.classList.add("strike");
     await sleep(650);
     word.classList.add("out");
@@ -41,7 +48,8 @@ const AVATARS = [
   "linear-gradient(135deg,#22c55e,#14b8a6)", "linear-gradient(135deg,#eab308,#f97316)",
   "linear-gradient(135deg,#ec4899,#a855f7)", "linear-gradient(135deg,#0ea5e9,#22c55e)"
 ];
-const FEED = [
+interface DemoPost { who: string; role: string; text: string; why?: string; job?: boolean }
+const FEED: DemoPost[] = [
   { who: "Fulano Visionário", role: "CEO de Si Mesmo", text: "Fui demitido hoje. E agradeci. 🙏 Uma lição de liderança que nenhuma faculdade ensina...", why: "devaneio" },
   { who: "Ana Recrutadora", role: "Tech Recruiter", text: "🚀 Estamos contratando: Dev Front-end Pleno (React) · 100% remoto · CLT", job: true },
   { who: "Beltrano Growth", role: "Top Voice de Tudo", text: "Montei o guia definitivo pra bombar no feed. Comenta EU que eu te mando 👇", why: "caça-engajamento" },
@@ -50,13 +58,13 @@ const FEED = [
   { who: "Bia Talent", role: "Talent Acquisition", text: "Vaga: Back-end Node.js Sênior · Híbrido em SP · PJ. Candidate-se pelo link!", job: true }
 ];
 
-function cardHtml(post, i) {
+function cardHtml(post: DemoPost, i: number) {
   return `
     <div class="card-body">
       <div class="who"><span class="avatar" style="background:${AVATARS[i % AVATARS.length]}"></span><span><b>${esc(post.who)}</b> · ${esc(post.role)}</span></div>
       <p>${esc(post.text)}</p>
     </div>
-    ${post.job ? `<span class="tag">✅ vaga</span>` : `<div class="card-bar">Escondido · ${esc(post.why)} <span class="mini">Mostrar</span></div>`}`;
+    ${post.job ? `<span class="tag">✅ vaga</span>` : `<div class="card-bar">Escondido · ${esc(post.why ?? "")} <span class="mini">Mostrar</span></div>`}`;
 }
 
 async function runDemo() {
@@ -83,7 +91,7 @@ async function runDemo() {
         el.classList.add("kept");
       } else {
         el.classList.add("zapped");
-        count.textContent = ++total;
+        count.textContent = String(++total);
         count.classList.remove("bump");
         void count.offsetWidth;
         count.classList.add("bump");
@@ -99,7 +107,7 @@ async function runDemo() {
 function staticDemo() {
   const feed = $("#demo-feed");
   feed.innerHTML = FEED.map((post, i) => `<div class="card ${post.job ? "kept" : "zapped"}">${cardHtml(post, i)}</div>`).join("");
-  $("#demo-count").textContent = FEED.filter((p) => !p.job).length;
+  $("#demo-count").textContent = String(FEED.filter((p) => !p.job).length);
 }
 
 // --- Faixa de clichês ------------------------------------------------------
@@ -130,7 +138,7 @@ for (const [label, text] of EXAMPLES) {
   b.textContent = label;
   b.addEventListener("click", () => {
     for (const c of examples.children) c.setAttribute("aria-pressed", String(c === b));
-    $("#post").value = text;
+    $<HTMLTextAreaElement>("#post").value = text;
     judge(true);
   });
   examples.append(b);
@@ -138,7 +146,7 @@ for (const [label, text] of EXAMPLES) {
 
 let lastVerdict = "";
 function judge(force = false) {
-  const text = $("#post").value.trim();
+  const text = $<HTMLTextAreaElement>("#post").value.trim();
   const box = $("#verdict");
   if (!text) {
     box.className = "verdict";
@@ -156,7 +164,7 @@ function judge(force = false) {
     ? `<div class="stamp ok"><span class="big">✅</span><h3>É vaga! Fica no feed.</h3><p class="muted">Passou pelo filtro padrão.</p><span class="why">motivo: ${esc(reason)}</span></div>`
     : `<div class="stamp no"><span class="big">${cat.emoji}</span><h3>Barrado: ${esc(cat.label.toLowerCase())}</h3><p class="muted">Esse não chega no seu feed.</p><span class="why">motivo: ${esc(reason)}</span></div>`;
 }
-let judgeTimer;
+let judgeTimer: ReturnType<typeof setTimeout> | undefined;
 $("#post").addEventListener("input", () => {
   for (const c of examples.children) c.setAttribute("aria-pressed", "false");
   clearTimeout(judgeTimer);
@@ -164,8 +172,12 @@ $("#post").addEventListener("input", () => {
 });
 
 // --- Gerador de query: o mesmo jfBuildQuery da extensão ---------------------
-const query = { ...JF_QUERY_EMPTY, techs: ["react", "node"], seniority: "mid", modality: "remote", exclude: ["intern"] };
-const QB = [
+const query: QueryState = { ...JF_QUERY_EMPTY, techs: ["react", "node"], seniority: "mid", modality: "remote", exclude: ["intern"] };
+// [seletor, opções, campo do estado, ids mostrados, aceita várias?]
+type QBRow =
+  | [sel: string, field: QueryField, key: "techs" | "exclude", ids: string[], multi: true]
+  | [sel: string, field: QueryField, key: "seniority" | "modality", ids: string[], multi: false];
+const QB: QBRow[] = [
   ["#qb-techs", "tech", "techs", ["react", "node", "typescript", "python", "java", "flutter", "data", "qa"], true],
   ["#qb-seniority", "seniority", "seniority", ["junior", "mid", "senior"], false],
   ["#qb-modality", "modality", "modality", ["remote", "hybrid", "onsite"], false],
@@ -173,8 +185,8 @@ const QB = [
 ];
 function renderQuery() {
   for (const [sel, , key, , multi] of QB) {
-    for (const chip of $(sel).children) {
-      const on = multi ? query[key].includes(chip.dataset.id) : query[key] === chip.dataset.id;
+    for (const chip of $(sel).children as HTMLCollectionOf<HTMLElement>) {
+      const on = multi ? query[key].includes(chip.dataset.id!) : query[key] === chip.dataset.id;
       chip.setAttribute("aria-pressed", String(on));
     }
   }
@@ -184,7 +196,8 @@ function renderQuery() {
   void out.offsetWidth;
   out.classList.add("flash");
 }
-for (const [sel, field, key, ids, multi] of QB) {
+for (const row of QB) {
+  const [sel, field, , ids] = row;
   for (const id of ids) {
     const chip = document.createElement("button");
     chip.type = "button";
@@ -192,9 +205,11 @@ for (const [sel, field, key, ids, multi] of QB) {
     chip.dataset.id = id;
     chip.textContent = JF_QUERY_OPTIONS[field].options[id].label;
     chip.addEventListener("click", () => {
-      if (multi) {
+      if (row[4]) {
+        const key = row[2];
         query[key] = query[key].includes(id) ? query[key].filter((x) => x !== id) : [...query[key], id];
       } else {
+        const key = row[2];
         query[key] = query[key] === id ? "" : id;
       }
       renderQuery();
@@ -213,7 +228,7 @@ $("#qb-copy").addEventListener("click", async () => {
 });
 
 // --- Aparece ao rolar + números que contam ----------------------------------
-function countUp(el) {
+function countUp(el: HTMLElement) {
   const target = Number(el.dataset.count);
   const suffix = el.dataset.suffix || "";
   if (reduced || !target) {
@@ -221,7 +236,7 @@ function countUp(el) {
     return;
   }
   const start = performance.now();
-  const step = (now) => {
+  const step = (now: number) => {
     const t = Math.min(1, (now - start) / 1200);
     el.textContent = Math.round(target * (1 - Math.pow(1 - t, 3))) + suffix;
     if (t < 1) requestAnimationFrame(step);
@@ -232,14 +247,14 @@ const observer = new IntersectionObserver((entries) => {
   for (const entry of entries) {
     if (!entry.isIntersecting) continue;
     entry.target.classList.add("on");
-    for (const n of entry.target.querySelectorAll("[data-count]")) countUp(n);
+    for (const n of entry.target.querySelectorAll<HTMLElement>("[data-count]")) countUp(n);
     observer.unobserve(entry.target);
   }
 }, { threshold: 0.15 });
 for (const el of document.querySelectorAll(".reveal")) observer.observe(el);
 
 // Brilho que segue o mouse nos cards de recurso.
-for (const card of document.querySelectorAll(".feature")) {
+for (const card of document.querySelectorAll<HTMLElement>(".feature")) {
   card.addEventListener("pointermove", (e) => {
     const r = card.getBoundingClientRect();
     card.style.setProperty("--x", `${e.clientX - r.left}px`);
@@ -248,7 +263,7 @@ for (const card of document.querySelectorAll(".feature")) {
 }
 
 // --- Pix --------------------------------------------------------------------
-function hearts(x, y) {
+function hearts(x: number, y: number) {
   if (reduced) return;
   for (let i = 0; i < 12; i++) {
     const h = document.createElement("span");

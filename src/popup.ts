@@ -1,19 +1,29 @@
-const $ = (sel) => document.querySelector(sel);
-const $$ = (sel) => [...document.querySelectorAll(sel)];
+// Painel da extensão (popup).
+import { JF_FACETS, jfNormalize } from "./classify.ts";
+import { JF_DEFAULTS, type Settings } from "./defaults.ts";
+import { JF_QUERY_EMPTY, JF_QUERY_OPTIONS, jfBuildQuery, jfQueryCount, type QueryField, type QueryState } from "./query.ts";
+import { JF_STAT_CATEGORIES, jfDuration, jfStatsSummary, type Stats } from "./stats.ts";
+import { JF_PIX } from "./support.ts";
 
-let settings = { ...JF_DEFAULTS };
+// O HTML é nosso: o seletor sempre acha o elemento.
+const $ = <T extends HTMLElement = HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
+const $$ = <T extends HTMLElement = HTMLElement>(sel: string) => [...document.querySelectorAll<T>(sel)];
+
+let settings: Settings = { ...JF_DEFAULTS };
+// Leitura por nome vindo do HTML (data-setting, data-list, data-number).
+const setting = (key: string | undefined) => (settings as Record<string, unknown>)[key ?? ""];
 
 // Versão do manifest ("version_name" quando houver, ex.: beta-0.1.1).
 const manifest = chrome.runtime?.getManifest?.();
 $("#version").textContent = manifest ? manifest.version_name || `v${manifest.version}` : "";
 
-const save = (data) => {
+const save = (data: Partial<Settings>) => {
   Object.assign(settings, data);
   chrome.storage.sync.set(data);
 };
 
-let toastTimer;
-function toast(msg) {
+let toastTimer: ReturnType<typeof setTimeout> | undefined;
+function toast(msg: string) {
   const el = $("#toast");
   el.textContent = msg;
   el.classList.add("show");
@@ -21,14 +31,14 @@ function toast(msg) {
   toastTimer = setTimeout(() => el.classList.remove("show"), 1800);
 }
 
-// Monta os grupos de "Não mostrar" a partir de JF_FACETS (classify.js).
+// Monta os grupos de "Não mostrar" a partir de JF_FACETS (classify.ts).
 function buildFacets() {
   const root = $("#facets");
   for (const [name, facet] of Object.entries(JF_FACETS)) {
     const group = document.createElement("div");
     group.className = "facet";
     group.innerHTML = `<div class="facet-title"></div><div class="chips"></div>`;
-    group.querySelector(".facet-title").textContent = facet.label;
+    group.querySelector(".facet-title")!.textContent = facet.label;
     for (const [id, option] of Object.entries(facet.options)) {
       const chip = document.createElement("button");
       chip.type = "button";
@@ -36,25 +46,25 @@ function buildFacets() {
       chip.dataset.facet = name;
       chip.dataset.option = id;
       chip.textContent = option.label;
-      group.querySelector(".chips").append(chip);
+      group.querySelector(".chips")!.append(chip);
     }
     root.append(group);
   }
 }
 
 function render() {
-  for (const el of $$(".switch")) el.setAttribute("aria-checked", String(Boolean(settings[el.dataset.setting])));
+  for (const el of $$(".switch")) el.setAttribute("aria-checked", String(Boolean(setting(el.dataset.setting))));
   for (const el of $$(".segmented[data-setting] button")) {
-    el.setAttribute("aria-pressed", String(settings[el.parentElement.dataset.setting] === el.dataset.value));
+    el.setAttribute("aria-pressed", String(setting(el.parentElement!.dataset.setting) === el.dataset.value));
   }
   for (const el of $$(".chip[data-facet]")) {
-    const excluded = settings.exclude?.[el.dataset.facet] || [];
-    el.setAttribute("aria-pressed", String(excluded.includes(el.dataset.option)));
+    const excluded = settings.exclude?.[el.dataset.facet!] || [];
+    el.setAttribute("aria-pressed", String(excluded.includes(el.dataset.option!)));
   }
-  for (const el of $$("[data-list]")) {
-    if (document.activeElement !== el) el.value = (settings[el.dataset.list] || []).join(el.dataset.sep ? ", " : "\n");
+  for (const el of $$<HTMLInputElement | HTMLTextAreaElement>("[data-list]")) {
+    if (document.activeElement !== el) el.value = ((setting(el.dataset.list) as string[]) || []).join(el.dataset.sep ? ", " : "\n");
   }
-  for (const el of $$("[data-number]")) el.value = settings[el.dataset.number];
+  for (const el of $$<HTMLInputElement>("[data-number]")) el.value = String(setting(el.dataset.number));
   // Desligado: o resto fica apagado.
   $("#body").classList.toggle("off", !settings.enabled);
   // "Só vagas" desligado: filtros de vaga não se aplicam.
@@ -68,9 +78,9 @@ function render() {
 // Filtros dentro de "Opções avançadas" de Vagas que estão ligados — para dar
 // para ver que tem coisa filtrando mesmo com o bloco fechado.
 function advancedActive() {
-  const switches = ["requireLocation", "requireSalary", "hideIncomplete"].filter((k) => settings[k]).length;
-  const lists = ["mustHave", "mustNotHave", "locations", "blockedCompanies", "allowedCompanies"].filter((k) => (settings[k] || []).length).length;
-  const numbers = ["minSalary", "maxExperience"].filter((k) => Number(settings[k]) > 0).length;
+  const switches = (["requireLocation", "requireSalary", "hideIncomplete"] as const).filter((k) => settings[k]).length;
+  const lists = (["mustHave", "mustNotHave", "locations", "blockedCompanies", "allowedCompanies"] as const).filter((k) => (settings[k] || []).length).length;
+  const numbers = (["minSalary", "maxExperience"] as const).filter((k) => Number(settings[k]) > 0).length;
   const facets = Object.values(settings.exclude || {}).filter((ids) => ids.length).length;
   return switches + lists + numbers + facets;
 }
@@ -80,15 +90,15 @@ const FILTER_SWITCHES = [
   "onlyJobs", "recruitersOnly", "techOnly", "hideEnglish",
   "blockFluff", "blockBait", "hideSponsored", "hideReposts",
   "requireLocation", "requireSalary", "hideIncomplete", "blockCourses"
-];
+] as const;
 
 function activeSummary() {
   if (!settings.enabled) return "Desligado — seu feed está sem proteção 😬";
   const lists = [
     "mustHave", "mustNotHave", "locations", "blockedCompanies", "allowedCompanies",
     "blockedDomains", "blockedAuthors", "allowedAuthors", "blocklist"
-  ];
-  const numbers = ["minSalary", "maxExperience"];
+  ] as const;
+  const numbers = ["minSalary", "maxExperience"] as const;
   const chips = Object.values(settings.exclude || {}).reduce((n, list) => n + list.length, 0);
   const total = FILTER_SWITCHES.filter((k) => settings[k]).length
     + lists.filter((k) => (settings[k] || []).length).length
@@ -99,18 +109,18 @@ function activeSummary() {
 
 // Busca: mostra só os itens cujo texto bate, abrindo as seções que têm resultado.
 function applySearch() {
-  const query = jfNormalize($("#search").value.trim());
+  const query = jfNormalize($<HTMLInputElement>("#search").value.trim());
   let any = false;
-  for (const section of $$(".section")) {
-    const title = jfNormalize(section.querySelector("summary").textContent);
+  for (const section of $$<HTMLDetailsElement>(".section")) {
+    const title = jfNormalize(section.querySelector("summary")!.textContent ?? "");
     let hits = 0;
-    for (const item of section.querySelectorAll(".item")) {
-      const match = !query || title.includes(query) || jfNormalize(item.textContent).includes(query);
+    for (const item of section.querySelectorAll<HTMLElement>(".item")) {
+      const match = !query || title.includes(query) || jfNormalize(item.textContent ?? "").includes(query);
       item.hidden = !match;
       if (match) hits++;
     }
-    for (const advanced of section.querySelectorAll(".advanced")) {
-      const inner = [...advanced.querySelectorAll(".item")].filter((i) => !i.hidden).length;
+    for (const advanced of section.querySelectorAll<HTMLDetailsElement>(".advanced")) {
+      const inner = [...advanced.querySelectorAll<HTMLElement>(".item")].filter((i) => !i.hidden).length;
       advanced.hidden = Boolean(query) && inner === 0;
       if (query && inner) advanced.open = true;
     }
@@ -119,63 +129,67 @@ function applySearch() {
     any ||= hits > 0;
   }
   $("#no-results").hidden = !query || any;
-  if (typeof JF_PIX !== "undefined") $("#support").hidden = Boolean(query);
+  if (JF_PIX) $("#support").hidden = Boolean(query);
 }
 
 buildFacets();
 $("#search").addEventListener("input", applySearch);
 
 chrome.storage.sync.get(JF_DEFAULTS, (stored) => {
-  settings = stored;
+  settings = stored as Settings;
   render();
 });
 
 // Switches, segmentado e chips salvam na hora.
 document.addEventListener("click", (e) => {
-  const sw = e.target.closest(".switch");
+  const target = e.target as Element;
+  const sw = target.closest<HTMLElement>(".switch");
   if (sw) {
-    save({ [sw.dataset.setting]: !settings[sw.dataset.setting] });
+    save({ [sw.dataset.setting!]: !setting(sw.dataset.setting) });
     return render();
   }
-  const seg = e.target.closest(".segmented[data-setting] button");
+  const seg = target.closest<HTMLElement>(".segmented[data-setting] button");
   if (seg) {
-    save({ [seg.parentElement.dataset.setting]: seg.dataset.value });
+    save({ [seg.parentElement!.dataset.setting!]: seg.dataset.value });
     return render();
   }
-  const chip = e.target.closest(".chip[data-facet]");
+  const chip = target.closest<HTMLElement>(".chip[data-facet]");
   if (chip) {
+    const { facet = "", option = "" } = chip.dataset;
     const exclude = structuredClone(settings.exclude || {});
-    const list = new Set(exclude[chip.dataset.facet] || []);
-    if (list.has(chip.dataset.option)) list.delete(chip.dataset.option);
-    else list.add(chip.dataset.option);
-    exclude[chip.dataset.facet] = [...list];
+    const list = new Set(exclude[facet] || []);
+    if (list.has(option)) list.delete(option);
+    else list.add(option);
+    exclude[facet] = [...list];
     save({ exclude });
     return render();
   }
 });
 
 // Listas e números salvam sozinhos, meio segundo depois de parar de digitar.
-const timers = {};
-function debounced(key, fn) {
+const timers: Record<string, ReturnType<typeof setTimeout>> = {};
+function debounced(key: string, fn: () => void) {
   clearTimeout(timers[key]);
   timers[key] = setTimeout(fn, 500);
 }
 
-for (const el of $$("[data-list]")) {
-  el.addEventListener("input", () => debounced(el.dataset.list, () => {
+for (const el of $$<HTMLInputElement | HTMLTextAreaElement>("[data-list]")) {
+  const key = el.dataset.list!;
+  el.addEventListener("input", () => debounced(key, () => {
     const parts = el.value.split(el.dataset.sep || "\n").map((s) => s.trim()).filter(Boolean);
-    save({ [el.dataset.list]: parts });
+    save({ [key]: parts });
     render();
     toast("Salvo");
   }));
 }
 
-for (const el of $$("[data-number]")) {
-  el.addEventListener("input", () => debounced(el.dataset.number, () => {
+for (const el of $$<HTMLInputElement>("[data-number]")) {
+  const key = el.dataset.number!;
+  el.addEventListener("input", () => debounced(key, () => {
     // min="0" aceita 0 (= desligado); os outros caem no padrão se ficar vazio.
     const min = Number(el.min || 1);
     const value = Number(el.value);
-    save({ [el.dataset.number]: Math.max(min, Number.isFinite(value) && el.value !== "" ? value : JF_DEFAULTS[el.dataset.number]) });
+    save({ [key]: Math.max(min, Number.isFinite(value) && el.value !== "" ? value : Number((JF_DEFAULTS as Record<string, unknown>)[key])) });
     render();
     toast("Salvo");
   }));
@@ -190,36 +204,40 @@ $("#reset").addEventListener("click", () => {
   });
 });
 
+// Campos do estado do gerador pelo nome do HTML (data-q, data-q-add, data-q-chips).
+type QuerySingle = "lang" | "seniority" | "modality" | "contract" | "location";
+type QueryList = "techs" | "exclude";
+
 // --- Gerador de query ------------------------------------------------------
 // Estado guardado em storage.local (é só conveniência deste navegador).
-let query = { ...JF_QUERY_EMPTY };
+let query: QueryState = { ...JF_QUERY_EMPTY };
 
 function buildQueryOptions() {
-  const fill = (select, field, first) => {
+  const fill = (select: HTMLSelectElement, field: QueryField, first: string | null) => {
     select.innerHTML = "";
     if (first) select.append(new Option(first, ""));
     for (const [id, o] of Object.entries(JF_QUERY_OPTIONS[field].options)) select.append(new Option(o.label, id));
   };
-  for (const el of $$("[data-q]")) fill(el, el.dataset.q, el.dataset.q === "lang" ? null : "Qualquer");
-  for (const el of $$("[data-q-add]")) fill(el, el.dataset.qField, "+ Adicionar");
+  for (const el of $$<HTMLSelectElement>("[data-q]")) fill(el, el.dataset.q as QueryField, el.dataset.q === "lang" ? null : "Qualquer");
+  for (const el of $$<HTMLSelectElement>("[data-q-add]")) fill(el, el.dataset.qField as QueryField, "+ Adicionar");
 }
 
 function renderQuery() {
-  for (const el of $$("[data-q]")) el.value = query[el.dataset.q];
+  for (const el of $$<HTMLSelectElement>("[data-q]")) el.value = query[el.dataset.q as QuerySingle];
   for (const el of $$("[data-q-mode] button")) el.setAttribute("aria-pressed", String(query.techMode === el.dataset.value));
   for (const box of $$("[data-q-chips]")) {
     box.innerHTML = "";
-    for (const id of query[box.dataset.qChips]) {
+    for (const id of query[box.dataset.qChips as QueryList]) {
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "chip";
       chip.dataset.qRemove = id;
       chip.title = "Remover";
-      chip.textContent = JF_QUERY_OPTIONS[box.dataset.qField].options[id].label;
+      chip.textContent = JF_QUERY_OPTIONS[box.dataset.qField as QueryField].options[id].label;
       box.append(chip);
     }
   }
-  $("#q-output").value = jfBuildQuery(query);
+  $<HTMLTextAreaElement>("#q-output").value = jfBuildQuery(query);
   const n = jfQueryCount(query);
   $("#q-level").textContent = n >= 5 ? `${n} opções: busca bem específica, pode vir pouca vaga 😬`
     : n >= 3 ? `${n} opções: busca específica` : "";
@@ -231,25 +249,27 @@ function saveQuery() {
 }
 
 $("#query-builder").addEventListener("change", (e) => {
-  const el = e.target;
-  if (el.dataset.q) query[el.dataset.q] = el.value;
-  if (el.dataset.qAdd && el.value) {
-    const list = query[el.dataset.qAdd];
-    if (!list.includes(el.value)) query[el.dataset.qAdd] = [...list, el.value];
+  const el = e.target as HTMLSelectElement;
+  if (el.dataset.q) query[el.dataset.q as QuerySingle] = el.value;
+  const add = el.dataset.qAdd as QueryList | undefined;
+  if (add && el.value) {
+    const list = query[add];
+    if (!list.includes(el.value)) query[add] = [...list, el.value];
     el.value = "";
   }
   saveQuery();
 });
 
 $("#query-builder").addEventListener("click", (e) => {
-  const mode = e.target.closest("[data-q-mode] button");
+  const target = e.target as Element;
+  const mode = target.closest<HTMLElement>("[data-q-mode] button");
   if (mode) {
-    query.techMode = mode.dataset.value;
+    query.techMode = mode.dataset.value ?? "any";
     return saveQuery();
   }
-  const remove = e.target.closest("[data-q-remove]");
+  const remove = target.closest<HTMLElement>("[data-q-remove]");
   if (remove) {
-    const key = remove.parentElement.dataset.qChips;
+    const key = remove.parentElement!.dataset.qChips as QueryList;
     query[key] = query[key].filter((id) => id !== remove.dataset.qRemove);
     saveQuery();
   }
@@ -262,7 +282,7 @@ $("#q-clear").addEventListener("click", () => {
 
 async function copyQuery() {
   try {
-    await navigator.clipboard.writeText($("#q-output").value);
+    await navigator.clipboard.writeText($<HTMLTextAreaElement>("#q-output").value);
     return true;
   } catch {
     return false;
@@ -274,11 +294,11 @@ $("#q-copy").addEventListener("click", async () => toast((await copyQuery()) ? "
 // Coloca a busca no campo de pesquisa do LinkedIn (sem pesquisar: a pessoa
 // confere e aperta Enter). Se não achar o campo, copia.
 $("#q-apply").addEventListener("click", async () => {
-  const text = $("#q-output").value;
+  const text = $<HTMLTextAreaElement>("#q-output").value;
   let filled = false;
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    filled = (await chrome.tabs.sendMessage(tab.id, { type: "jf-search", query: text }))?.ok;
+    filled = (await chrome.tabs.sendMessage(tab.id!, { type: "jf-search", query: text }))?.ok;
   } catch { /* aba que não é do LinkedIn */ }
   if (filled) return toast("Busca no campo de pesquisa: é só apertar Enter");
   toast((await copyQuery()) ? "Abra o LinkedIn e cole no campo de busca (já copiei)" : "Abra o LinkedIn para aplicar a busca");
@@ -286,18 +306,18 @@ $("#q-apply").addEventListener("click", async () => {
 
 buildQueryOptions();
 renderQuery();
-chrome.storage.local?.get({ jfQuery: JF_QUERY_EMPTY }, ({ jfQuery }) => {
+chrome.storage.local?.get({ jfQuery: JF_QUERY_EMPTY }, ({ jfQuery }: { jfQuery: Partial<QueryState> }) => {
   query = { ...JF_QUERY_EMPTY, ...jfQuery };
   renderQuery();
 });
 
 // --- Fanficômetro ------------------------------------------------------------
 // Os números vêm do content script (storage.local, chave jfStats).
-function renderStats(stats) {
+function renderStats(stats: Stats | null | undefined) {
   const sum = jfStatsSummary(stats || {});
-  $("#stat-today").textContent = sum.today;
-  $("#stat-week").textContent = sum.week;
-  $("#stat-total").textContent = sum.total;
+  $("#stat-today").textContent = String(sum.today);
+  $("#stat-week").textContent = String(sum.week);
+  $("#stat-total").textContent = String(sum.total);
   $("#stat-time").textContent = jfDuration(sum.seconds);
   $("#stats-badge").textContent = sum.today ? `· ${sum.today} hoje` : "";
   $("#stats-headline").textContent = !sum.total
@@ -316,21 +336,21 @@ function renderStats(stats) {
     row.className = "stat-cat";
     row.innerHTML = `<span></span><strong></strong><div class="bar"><span></span></div>`;
     row.children[0].textContent = `${emoji} ${label}`;
-    row.children[1].textContent = n;
-    row.querySelector(".bar span").style.width = `${Math.max(4, (n / max) * 100)}%`;
+    row.children[1].textContent = String(n);
+    row.querySelector<HTMLElement>(".bar span")!.style.width = `${Math.max(4, (n / max) * 100)}%`;
     list.append(row);
   }
 }
 
-chrome.storage.local?.get({ jfStats: null }, ({ jfStats }) => renderStats(jfStats));
+chrome.storage.local?.get({ jfStats: null }, ({ jfStats }: { jfStats: Stats | null }) => renderStats(jfStats));
 chrome.storage.onChanged?.addListener((changes, area) => {
-  if (area === "local" && changes.jfStats) renderStats(changes.jfStats.newValue);
+  if (area === "local" && changes.jfStats) renderStats(changes.jfStats.newValue as Stats | null);
 });
 
 // Zerar pede um segundo clique (sem confirm(), que trava o popup).
-let resetArmed = null;
+let resetArmed: ReturnType<typeof setTimeout> | null = null;
 $("#stats-reset").addEventListener("click", (e) => {
-  const btn = e.currentTarget;
+  const btn = e.currentTarget as HTMLButtonElement;
   if (!resetArmed) {
     btn.textContent = "Clique de novo para zerar";
     resetArmed = setTimeout(() => {
@@ -348,8 +368,8 @@ $("#stats-reset").addEventListener("click", (e) => {
 });
 
 // --- Apoio (Pix) -------------------------------------------------------------
-// JF_PIX vem de support.js (tools/pix.py). Sem ele, o card não aparece.
-if (typeof JF_PIX !== "undefined") {
+// JF_PIX vem de support.ts (tools/pix.py). Vazio, o card não aparece.
+if (JF_PIX) {
   $("#support").hidden = false;
   $("#pix-copy").addEventListener("click", async () => {
     try {
@@ -364,19 +384,19 @@ if (typeof JF_PIX !== "undefined") {
 // Formato do export: .md (para ler) ou .json (para script).
 let exportFormat = "md";
 $("#export-format").addEventListener("click", (e) => {
-  const btn = e.target.closest("button");
+  const btn = (e.target as Element).closest("button");
   if (!btn) return;
-  exportFormat = btn.dataset.value;
+  exportFormat = btn.dataset.value ?? "md";
   for (const el of $$("#export-format button")) el.setAttribute("aria-pressed", String(el === btn));
 });
 
 // Pede os posts para a aba do LinkedIn e baixa no formato escolhido. Limite 0 = todos.
 $("#export").addEventListener("click", async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  const limit = Number($("#export-limit").value);
+  const limit = Number($<HTMLSelectElement>("#export-limit").value);
   const type = exportFormat === "json" ? "application/json" : "text/markdown";
   try {
-    const { count, content } = await chrome.tabs.sendMessage(tab.id, { type: "jf-export", limit, format: exportFormat });
+    const { count, content }: { count: number; content: string } = await chrome.tabs.sendMessage(tab.id!, { type: "jf-export", limit, format: exportFormat });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([content], { type }));
     a.download = `fanficblock-posts-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-")}.${exportFormat}`;

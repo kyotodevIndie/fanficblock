@@ -1,6 +1,7 @@
 <!doctype html>
 <!-- Prévia do popup fora da extensão, com chrome.storage falso (guardado em
-     memória). Sirva a pasta do projeto e abra /test/popup-preview.html
+     memória). Rode npm run build, sirva a pasta do projeto e abra
+     /test/popup-preview.html
      (?demo para números de exemplo nas estatísticas) -->
 <meta charset="utf-8">
 <title>Prévia do popup</title>
@@ -41,9 +42,9 @@
   <\/script>`;
   const h = new URLSearchParams(location.search).get("h");
   if (h) document.getElementById("popup").style.height = `${h}px`;
-  fetch("/popup.html").then((r) => r.text()).then((html) => {
+  fetch("/build/popup.html").then((r) => r.text()).then((html) => {
     document.getElementById("popup").srcdoc = html
-      .replace("<head>", '<head><base href="/">')
-      .replace('<script src="defaults.js">', stub + '<script src="defaults.js">');
+      .replace("<head>", '<head><base href="/build/">')
+      .replace('<script src="popup.js">', stub + '<script src="popup.js">');
   });
 </script>

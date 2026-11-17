@@ -49,27 +49,33 @@ mande:
 
 ## 🛠️ Mandar código
 
-O projeto é JavaScript puro: **sem build, sem npm install, sem
-dependências**. Você só precisa de:
+O projeto é TypeScript, empacotado com esbuild. A extensão não tem nenhuma
+dependência em tempo de execução: as dependências de desenvolvimento são só
+`typescript`, `esbuild` e os tipos do Chrome e do Node. Você precisa de:
 
 - Chrome (ou outro navegador baseado nele);
-- [Node.js](https://nodejs.org) 18 ou mais novo, pra rodar os testes;
+- [Node.js](https://nodejs.org) 22.18 ou mais novo (roda os testes `.ts`
+  direto, sem compilar);
 - Python 3, só se for mexer nos mocks (servidor local) ou no Pix.
 
 ```bash
 git clone https://github.com/kyotodevIndie/fanficblock.git
 cd fanficblock
-node test/run.js
+npm install
+npm run check   # typecheck + testes
+npm run build   # monta a extensão em build/
 ```
 
 Pra ver a extensão rodando:
 
 1. `chrome://extensions` → **Modo do desenvolvedor** → **Carregar sem
-   compactação** → escolha a pasta.
-2. Depois de mudar o código, clique em recarregar na extensão e recarregue a
-   aba do LinkedIn.
+   compactação** → escolha a pasta `build/`.
+2. Deixe `npm run watch` rodando: ele remonta o `build/` a cada mudança.
+   Depois é só clicar em recarregar na extensão e recarregar a aba do
+   LinkedIn.
 
-Pra testar sem LinkedIn (mais rápido e sem mexer na sua conta):
+Pra testar sem LinkedIn (mais rápido e sem mexer na sua conta), com o
+`build/` montado:
 
 ```bash
 python3 -m http.server 8765 --bind 127.0.0.1
@@ -111,25 +117,28 @@ deles, vale abrir uma issue antes pra gente conversar.
 
 | Quero... | Arquivo |
 | --- | --- |
-| Mudar as palavras e frases de cada filtro | `defaults.js` |
-| Mudar como um post é classificado (fica ou some) | `classify.js` |
-| Ler local, salário, experiência ou domínio do texto | `extract.js` |
-| Mexer em como os posts são achados ou escondidos no feed | `content.js` / `content.css` |
-| Mexer no painel | `popup.html` / `popup.css` / `popup.js` |
-| Mexer no gerador de query | `query.js` |
-| Mexer nas estatísticas | `stats.js` |
+| Mudar as palavras e frases de cada filtro | `src/defaults.ts` |
+| Mudar como um post é classificado (fica ou some) | `src/classify.ts` |
+| Ler local, salário, experiência ou domínio do texto | `src/extract.ts` |
+| Mexer em como os posts são achados ou escondidos no feed | `src/content.ts` / `extension/content.css` |
+| Mexer no painel | `extension/popup.html` / `extension/popup.css` / `src/popup.ts` |
+| Mexer no gerador de query | `src/query.ts` |
+| Mexer nas estatísticas | `src/stats.ts` |
+| Mudar nome, versão ou permissões | `extension/manifest.json` |
 
-`classify.js`, `extract.js`, `query.js` e `stats.js` não usam DOM: dá pra
+`classify.ts`, `extract.ts`, `query.ts` e `stats.ts` não usam DOM: dá pra
 testar tudo no Node. Lógica nova vai nesses arquivos sempre que possível. O
-`content.js` só encontra os posts, extrai o texto e esconde.
+`content.ts` só encontra os posts, extrai o texto e esconde.
 
 A referência completa (cada filtro, a ordem das regras e como o feed é
 lido) está em [docs/COMO-FUNCIONA.md](docs/COMO-FUNCIONA.md).
 
 ### Estilo
 
-- JavaScript puro, sem build. Funções e constantes globais com prefixo
-  `jf` / `JF_` (os scripts da extensão dividem o mesmo escopo).
+- TypeScript em modo `strict`, só com sintaxe que o Node consegue apagar
+  (nada de `enum` nem `namespace`): o `tsconfig.json` já barra o resto.
+  Imports com a extensão `.ts`.
+- Funções e constantes exportadas com prefixo `jf` / `JF_`.
 - Textos da interface e comentários em português, curtos e diretos.
 - Siga o jeito do código em volta: nomes, densidade de comentário, formato.
 - O painel segue o visual do shadcn (zinc escuro). Reaproveite as classes
@@ -139,16 +148,17 @@ lido) está em [docs/COMO-FUNCIONA.md](docs/COMO-FUNCIONA.md).
 ## ✅ Testes
 
 ```bash
-node test/run.js
+npm run check
 ```
 
-Tem que terminar sem nenhum `FALHOU`. Toda mudança no filtro precisa de
+O typecheck não pode ter erro e os testes têm que terminar sem nenhum
+`FAIL`. Toda mudança no filtro precisa de
 teste. Escolha o lugar certo:
 
 - **Post de exemplo simples:** crie um arquivo em `test/posts/`. Se o nome
   começa com `sim-`, o post deve ficar; se começa com `nao-`, deve sumir.
 - **Regra com configuração:** adicione uma linha nas listas de
-  `test/run.js` (`cases`, `phase1`, `phase2`), no formato
+  `test/run.ts` (`cases`, `phase1`, `phase2`), no formato
   `[nome, texto, ajustes, deve ficar?, meta]`.
 - **Post como aparece no feed real:** adicione um bloco em
   `test/feed-sdui.txt`, começando com `Feed post` e
@@ -161,7 +171,7 @@ e diga no PR o que você testou no LinkedIn de verdade.
 
 1. Faça um fork e crie um branch: `git checkout -b filtro-coach-quantico`.
 2. Faça a mudança, com testes.
-3. Rode `node test/run.js`.
+3. Rode `npm run check`.
 4. Se mudou algo que a pessoa usuária vê, atualize o README ou o
    `docs/COMO-FUNCIONA.md`.
 5. Abra o PR contando o que mudou, por quê e como você testou. O modelo de

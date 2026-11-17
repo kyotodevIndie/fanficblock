@@ -2,7 +2,12 @@
 // Sem DOM, para testar no Node. Não guarda texto de post: só um hash curto
 // (para não contar o mesmo post duas vezes) e números.
 
-const JF_STAT_CATEGORIES = {
+export interface StatCategory { label: string; emoji: string }
+export interface StatEvent { hash: string; cat: string }
+export interface StatsDay { total: number; cats: Record<string, number> }
+export interface Stats { total: number; cats: Record<string, number>; days: Record<string, StatsDay>; seen: string[] }
+
+export const JF_STAT_CATEGORIES: Record<string, StatCategory> = {
   notJob: { label: "Não era vaga", emoji: "📭" },
   fluff: { label: "Devaneio", emoji: "🦄" },
   bait: { label: "Caça-engajamento", emoji: "🎣" },
@@ -15,15 +20,15 @@ const JF_STAT_CATEGORIES = {
 
 // Tempo economizado = posts escondidos × 8 s. Oito segundos é uma estimativa
 // do tempo de ler o começo de um post do LinkedIn e rolar para o próximo.
-const JF_SECONDS_PER_POST = 8;
+export const JF_SECONDS_PER_POST = 8;
 // Histórico limitado: só os últimos 30 dias e os últimos 1000 hashes.
-const JF_STATS_DAYS = 30;
-const JF_STATS_SEEN = 1000;
+export const JF_STATS_DAYS = 30;
+export const JF_STATS_SEEN = 1000;
 
-const JF_STATS_EMPTY = { total: 0, cats: {}, days: {}, seen: [] };
+export const JF_STATS_EMPTY: Stats = { total: 0, cats: {}, days: {}, seen: [] };
 
 // Motivo do jfClassify → categoria.
-function jfStatCategory(reason) {
+export function jfStatCategory(reason: string | null | undefined) {
   const r = reason || "";
   if (r.startsWith("patrocinado")) return "ads";
   if (r.startsWith("devaneio")) return "fluff";
@@ -36,7 +41,7 @@ function jfStatCategory(reason) {
 }
 
 // FNV-1a de 32 bits em hexa: identifica o post sem guardar o texto.
-function jfHash(text) {
+export function jfHash(text: string) {
   let h = 0x811c9dc5;
   for (let i = 0; i < text.length; i++) {
     h ^= text.charCodeAt(i);
@@ -46,10 +51,10 @@ function jfHash(text) {
 }
 
 // Data local "AAAA-MM-DD".
-const jfDay = (date = new Date()) => date.toLocaleDateString("sv-SE");
+export const jfDay = (date = new Date()) => date.toLocaleDateString("sv-SE");
 
 // events: [{ hash, cat }]. Devolve estatísticas novas (não altera as antigas).
-function jfStatsAdd(stats, events, today = jfDay()) {
+export function jfStatsAdd(stats: Partial<Stats>, events: StatEvent[], today = jfDay()): Stats {
   const next = structuredClone({ ...JF_STATS_EMPTY, ...stats });
   const seen = new Set(next.seen);
   for (const { hash, cat } of events) {
@@ -69,7 +74,7 @@ function jfStatsAdd(stats, events, today = jfDay()) {
 }
 
 // Hoje, últimos 7 dias (contando hoje), total e tempo economizado.
-function jfStatsSummary(stats, today = jfDay()) {
+export function jfStatsSummary(stats: Partial<Stats>, today = jfDay()) {
   const s = { ...JF_STATS_EMPTY, ...stats };
   const from = new Date(`${today}T12:00:00`);
   from.setDate(from.getDate() - 6);
@@ -87,16 +92,9 @@ function jfStatsSummary(stats, today = jfDay()) {
 }
 
 // "1 h 05 min", "12 min", "40 s".
-function jfDuration(seconds) {
+export function jfDuration(seconds: number) {
   if (seconds < 60) return `${seconds} s`;
   const min = Math.round(seconds / 60);
   if (min < 60) return `${min} min`;
   return `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, "0")} min`;
-}
-
-if (typeof module !== "undefined") {
-  module.exports = {
-    JF_STAT_CATEGORIES, JF_SECONDS_PER_POST, jfStatCategory, jfHash, jfDay,
-    jfStatsAdd, jfStatsSummary, jfDuration
-  };
 }

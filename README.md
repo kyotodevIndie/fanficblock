@@ -10,6 +10,7 @@ Uma extensão do Chrome que tira do feed do LinkedIn o coach quântico, o
 vagas que fazem sentido pra você.
 
 ![Versão](https://img.shields.io/badge/vers%C3%A3o-beta--0.1.1-a1a1aa?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![Manifest V3](https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?style=flat-square&logo=googlechrome&logoColor=white)
 ![Permissões](https://img.shields.io/badge/permiss%C3%B5es-s%C3%B3%20storage-22c55e?style=flat-square)
 ![Sem dependências](https://img.shields.io/badge/depend%C3%AAncias-zero-22c55e?style=flat-square)
@@ -61,17 +62,19 @@ E a vaga que você queria? Lá embaixo, se tiver sorte.
 
 ## 🚀 Instalar
 
-> Em breve nas lojas. Por enquanto, instale direto do código (leva 1 minuto).
+> Em breve nas lojas. Por enquanto, instale pelo .zip (leva 1 minuto).
 
-1. Baixe o projeto: botão verde **Code → Download ZIP** (e descompacte) ou
-   ```bash
-   git clone https://github.com/kyotodevIndie/fanficblock.git
-   ```
+1. Baixe o **[fanficblock.zip](https://github.com/kyotodevIndie/fanficblock/releases/latest/download/fanficblock.zip)**
+   da última versão e descompacte numa pasta.
 2. Abra `chrome://extensions`.
 3. Ligue o **Modo do desenvolvedor** (canto superior direito).
-4. Clique em **Carregar sem compactação** e escolha a pasta do projeto.
+4. Clique em **Carregar sem compactação** e escolha a pasta descompactada
+   (a que tem o `manifest.json`).
 5. Abra o feed do LinkedIn. Pronto: clique no ícone do FanficBlock pra
    ajustar os filtros.
+
+Quer montar a partir do código? `npm install && npm run build` e carregue a
+pasta `build/` (detalhes no [guia de contribuição](CONTRIBUTING.md)).
 
 Funciona no Chrome e nos navegadores baseados nele (Edge, Brave, Opera, Arc).
 

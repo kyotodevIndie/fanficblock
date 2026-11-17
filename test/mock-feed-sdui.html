@@ -9,7 +9,7 @@
 <head>
   <meta charset="utf-8">
   <title>Feed falso (SDUI)</title>
-  <link rel="stylesheet" href="/content.css">
+  <link rel="stylesheet" href="/build/content.css">
   <style>
     body { font: 14px system-ui, sans-serif; max-width: 560px; margin: 20px auto; }
     ._p8x { border: 1px solid #ccc; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
@@ -107,10 +107,7 @@
 </head>
 <body>
   <main><div class="_m1"><div id="list" class="_l2"></div></div></main>
-  <script src="/defaults.js"></script>
-  <script src="/extract.js"></script>
-  <script src="/classify.js"></script>
-  <script src="/stats.js"></script>
-  <script src="/content.js"></script>
+  <!-- npm run build antes: o content script empacotado fica em build/ -->
+  <script src="/build/content.js"></script>
 </body>
 </html>

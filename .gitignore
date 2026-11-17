@@ -17,5 +17,7 @@ Thumbs.db
 __pycache__/
 *.zip
 
-# Pacote das lojas (tools/pack.sh)
+# Dependências, extensão montada (npm run build) e pacotes (tools/pack.sh)
+node_modules/
+build/
 dist/

@@ -1,11 +1,11 @@
 <!doctype html>
-<!-- Feed falso com a estrutura do LinkedIn, para testar content.js no navegador.
+<!-- Feed falso com a estrutura do LinkedIn, para testar o content script no navegador.
      Sirva a pasta do projeto (python3 -m http.server) e abra /test/mock-feed.html -->
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
   <title>Feed falso</title>
-  <link rel="stylesheet" href="../content.css">
+  <link rel="stylesheet" href="../build/content.css">
   <style>
     body { font: 14px system-ui, sans-serif; max-width: 560px; margin: 20px auto; }
     .feed-shared-update-v2 { border: 1px solid #ccc; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
@@ -67,10 +67,7 @@
     <a href="https://www.linkedin.com/jobs/view/123">Analista de Dados</a>
   </div>
 
-  <script src="../defaults.js"></script>
-  <script src="../extract.js"></script>
-  <script src="../classify.js"></script>
-  <script src="../stats.js"></script>
-  <script src="../content.js"></script>
+  <!-- npm run build antes: o content script empacotado fica em build/ -->
+  <script src="../build/content.js"></script>
 </body>
 </html>

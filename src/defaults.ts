@@ -1,6 +1,53 @@
 // Configuração padrão, compartilhada entre o content script e o popup.
 // Palavras-chave são comparadas sem acento e em minúsculas.
-const JF_DEFAULTS = {
+export type Settings = {
+  enabled: boolean;
+  onlyJobs: boolean;
+  blockFluff: boolean;
+  blockBait: boolean;
+  hideSponsored: boolean;
+  hideReposts: boolean;
+  blockedAuthors: string[];
+  allowedAuthors: string[];
+  exclude: Record<string, string[]>;
+  techOnly: boolean;
+  hideEnglish: boolean;
+  mustHave: string[];
+  mustHaveMode: "any" | "all";
+  mustNotHave: string[];
+  locations: string[];
+  requireLocation: boolean;
+  requireSalary: boolean;
+  minSalary: number;
+  salaryCurrency: string;
+  maxExperience: number;
+  blockedCompanies: string[];
+  allowedCompanies: string[];
+  hideIncomplete: boolean;
+  flagDuplicates: boolean;
+  blockCourses: boolean;
+  courseWords: string[];
+  courseSaleWords: string[];
+  courseDomains: string[];
+  blockedDomains: string[];
+  mode: "hide" | "collapse";
+  debug: boolean;
+  weakNeeded: number;
+  strong: string[];
+  weak: string[];
+  blocklist: string[];
+  recruitersOnly: boolean;
+  recruiterWords: string[];
+  techWords: string[];
+  fluffNeeded: number;
+  fluffStrong: string[];
+  baitNeeded: number;
+  baitStrong: string[];
+  baitWeak: string[];
+  fluffWeak: string[];
+};
+
+export const JF_DEFAULTS: Settings = {
   enabled: true,
   // Esconde tudo que não for vaga.
   onlyJobs: true,
@@ -17,7 +64,7 @@ const JF_DEFAULTS = {
   // Bloqueado some sempre; liberado fica sempre (exceto "esconder sempre se tiver").
   blockedAuthors: [],
   allowedAuthors: [],
-  // Opções de vaga que NÃO quero ver, por grupo (ids em JF_FACETS, classify.js).
+  // Opções de vaga que NÃO quero ver, por grupo (ids em JF_FACETS, classify.ts).
   exclude: { modality: [], contract: [], seniority: [] },
   // Só vagas de tecnologia (precisa ter alguma palavra de techWords).
   techOnly: false,
