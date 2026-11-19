@@ -41,7 +41,7 @@
       </div>
       <div class="item">
         <label class="label" for="export-limit">Exportar posts do feed</label>
-        <p class="muted hint">Baixa os posts carregados na aba, com o motivo de cada um ficar ou sumir. Bom para entender o filtro ou reportar um erro.</p>
+        <p class="muted hint">Baixa os posts carregados na aba, com o motivo de cada um ficar ou sumir. Bom para entender o filtro ou reportar um erro. "Só vagas" baixa só os posts que ficam no feed.</p>
         <div class="actions">
           <select id="export-limit" class="input">
             <option value="10">10 posts</option>
@@ -50,11 +50,15 @@
             <option value="100">100 posts</option>
             <option value="0">Todos carregados</option>
           </select>
+          <div class="segmented" id="export-scope">
+            <button type="button" data-value="all" aria-pressed="true">Tudo</button>
+            <button type="button" data-value="kept" aria-pressed="false">Só vagas</button>
+          </div>
           <div class="segmented" id="export-format">
             <button type="button" data-value="md" aria-pressed="true">.md</button>
             <button type="button" data-value="json" aria-pressed="false">.json</button>
           </div>
-          <button type="button" id="export" class="btn btn-outline span-2">Baixar</button>
+          <button type="button" id="export" class="btn btn-outline">Baixar</button>
         </div>
       </div>
     </details>

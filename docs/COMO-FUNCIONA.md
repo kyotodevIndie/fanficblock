@@ -18,7 +18,8 @@ veja o [CONTRIBUTING.md](../CONTRIBUTING.md).
   sem barrinha.
 - **Exportar posts do feed**: baixa 10, 30, 50, 100 ou todos os posts
   carregados na aba em .md (para ler) ou .json (para script), com o motivo
-  de cada um ficar ou sumir.
+  de cada um ficar ou sumir. **Tudo** baixa todos; **Só vagas** baixa só
+  os posts que ficam no feed (o limite conta depois desse filtro).
 
 **Estatísticas (Fanficômetro)**: posts escondidos hoje, nos últimos 7 dias e
 no total, por categoria (não era vaga, devaneio, caça-engajamento, anúncio,

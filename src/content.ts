@@ -380,11 +380,11 @@ function resetAndScan() {
 
 // Exporta os primeiros posts do feed em .md ou .json, para entender o
 // filtro fora do navegador. Chamado pelo botão "Baixar" do popup.
-// limit 0 = todos os carregados.
-function exportPosts(limit: number, format: string) {
-  const posts = limit > 0 ? findPosts().slice(0, limit) : findPosts();
+// limit 0 = todos os carregados. onlyKept: só os posts que ficam no feed
+// (as vagas, com "só vagas" ligado); o limite conta depois do filtro.
+function exportPosts(limit: number, format: string, onlyKept = false) {
   const clean = (s: string) => s.replace(/\s+/g, " ").trim();
-  const records = posts.map((post): ExportRecord => {
+  const all = findPosts().map((post): ExportRecord => {
     const { keep, reason, author, body, jobLink, authorId, header, sponsored, links } = analyze(post);
     return {
       keep,
@@ -400,6 +400,8 @@ function exportPosts(limit: number, format: string) {
       card: clean(post.textContent ?? "")
     };
   });
+  const kept = onlyKept ? all.filter((r) => r.keep) : all;
+  const records = limit > 0 ? kept.slice(0, limit) : kept;
   const info = { url: location.href, date: new Date().toISOString(), recruitersOnly: settings.recruitersOnly };
 
   if (format === "json") {
@@ -407,7 +409,7 @@ function exportPosts(limit: number, format: string) {
   }
 
   const lines = [
-    `# FanficBlock — export de ${records.length} posts`,
+    `# FanficBlock — export de ${records.length} posts${onlyKept ? " (só os que ficam no feed)" : ""}`,
     "",
     `- URL: ${info.url}`,
     `- Data: ${info.date}`,
@@ -537,7 +539,7 @@ function fillSearch(query: string) {
 }
 
 chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
-  if (msg?.type === "jf-export") reply(exportPosts(msg.limit ?? 30, msg.format));
+  if (msg?.type === "jf-export") reply(exportPosts(msg.limit ?? 30, msg.format, msg.onlyKept));
   if (msg?.type === "jf-search") reply({ ok: fillSearch(msg.query) });
 });
 

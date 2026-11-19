@@ -35,7 +35,7 @@
         onChanged: { addListener: (fn) => (window.jfListeners ||= []).push(fn) }
       },
       runtime: { onMessage: { addListener(fn) {
-        window.jfExport = (format = "md", limit = 30) => new Promise((r) => fn({ type: "jf-export", limit, format }, null, r));
+        window.jfExport = (format = "md", limit = 30, onlyKept = false) => new Promise((r) => fn({ type: "jf-export", limit, format, onlyKept }, null, r));
       } } }
     };
 

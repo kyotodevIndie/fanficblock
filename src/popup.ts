@@ -381,14 +381,20 @@ if (JF_PIX) {
   });
 }
 
-// Formato do export: .md (para ler) ou .json (para script).
+// Opções do export: formato .md (para ler) ou .json (para script), e se
+// baixa tudo ou só os posts que ficam no feed.
+function exportOption(id: string, initial: string, onPick: (value: string) => void) {
+  $(id).addEventListener("click", (e) => {
+    const btn = (e.target as Element).closest("button");
+    if (!btn) return;
+    onPick(btn.dataset.value ?? initial);
+    for (const el of $$(`${id} button`)) el.setAttribute("aria-pressed", String(el === btn));
+  });
+}
 let exportFormat = "md";
-$("#export-format").addEventListener("click", (e) => {
-  const btn = (e.target as Element).closest("button");
-  if (!btn) return;
-  exportFormat = btn.dataset.value ?? "md";
-  for (const el of $$("#export-format button")) el.setAttribute("aria-pressed", String(el === btn));
-});
+let exportScope = "all";
+exportOption("#export-format", "md", (v) => (exportFormat = v));
+exportOption("#export-scope", "all", (v) => (exportScope = v));
 
 // Pede os posts para a aba do LinkedIn e baixa no formato escolhido. Limite 0 = todos.
 $("#export").addEventListener("click", async () => {
@@ -396,7 +402,8 @@ $("#export").addEventListener("click", async () => {
   const limit = Number($<HTMLSelectElement>("#export-limit").value);
   const type = exportFormat === "json" ? "application/json" : "text/markdown";
   try {
-    const { count, content }: { count: number; content: string } = await chrome.tabs.sendMessage(tab.id!, { type: "jf-export", limit, format: exportFormat });
+    const { count, content }: { count: number; content: string } = await chrome.tabs.sendMessage(tab.id!, { type: "jf-export", limit, format: exportFormat, onlyKept: exportScope === "kept" });
+    if (!count) return toast("Nenhum post para baixar");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([content], { type }));
     a.download = `fanficblock-posts-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-")}.${exportFormat}`;
