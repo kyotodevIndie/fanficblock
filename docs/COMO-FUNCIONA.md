@@ -10,8 +10,9 @@ veja o [CONTRIBUTING.md](../CONTRIBUTING.md).
 - **Só vagas**: esconde o que não for vaga. É vaga se tiver link de vaga do
   LinkedIn, uma palavra **forte** ("estamos contratando", "vaga", "#vagasti") ou
   2 palavras **fracas** diferentes ("oportunidade", "CLT", "benefícios").
-- **Post escondido**: **Oculto** (some de vez) ou **Recolhido** (vira uma
-  barrinha com "Mostrar"). O "Mostrar" lembra do post pelo conteúdo, porque o
+- **Post escondido**: **Recolhido** (padrão; vira uma barrinha com
+  "Mostrar") ou **Oculto** (some de vez, com um aviso no topo do feed
+  dizendo quantos posts foram escondidos). O "Mostrar" lembra do post pelo conteúdo, porque o
   LinkedIn recria os cards, e troca a barrinha por "Esconder de novo". Card
   que o próprio LinkedIn deixa invisível (anúncio descartado) fica recolhido
   sem barrinha.

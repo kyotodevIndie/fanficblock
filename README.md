@@ -9,7 +9,7 @@ Uma extensão do Chrome que tira do feed do LinkedIn o coach quântico, o
 "fui demitido e agradeci", o "comenta EU" e o textão de ego, e deixa só as
 vagas que fazem sentido pra você.
 
-![Versão](https://img.shields.io/badge/vers%C3%A3o-beta--0.1.1-a1a1aa?style=flat-square)
+![Versão](https://img.shields.io/badge/vers%C3%A3o-beta--0.1.2-a1a1aa?style=flat-square)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![Manifest V3](https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?style=flat-square&logo=googlechrome&logoColor=white)
 ![Permissões](https://img.shields.io/badge/permiss%C3%B5es-s%C3%B3%20storage-22c55e?style=flat-square)

@@ -8,7 +8,7 @@ Textos e respostas prontos para copiar e colar na **Chrome Web Store** e no
 
 | Campo | Arquivo | Tamanho |
 | --- | --- | --- |
-| Pacote | `dist/fanficblock-0.1.1.zip` | — |
+| Pacote | `dist/fanficblock-0.1.2.zip` | — |
 | Ícone da loja | `icons/icon-128.png` | 128×128 |
 | Capturas de tela | `store/screenshot-1.png` a `store/screenshot-4.png` | 1280×800 |
 | Bloco promocional pequeno | `store/promo-small.png` | 440×280 |

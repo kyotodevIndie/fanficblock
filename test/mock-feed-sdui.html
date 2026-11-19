@@ -22,14 +22,17 @@
     window.chrome = {
       storage: {
         sync: { get: (defaults, cb) => window.jfReady.then(() => cb({ ...defaults, debug: true,
-                                             mode: "collapse", recruitersOnly: params.has("rec"),
-                                             blockedAuthors: params.getAll("block") })) },
+                                             mode: params.has("hide") ? "hide" : "collapse", recruitersOnly: params.has("rec"),
+                                             blockedAuthors: params.getAll("block") })),
+                // Repassa para os ouvintes, como o chrome.storage faz.
+                set: (data) => window.jfListeners.forEach((fn) => fn(Object.fromEntries(
+                  Object.entries(data).map(([key, newValue]) => [key, { newValue }])), "sync")) },
         // Fanficômetro: fica em window.jfLocal para conferir.
         local: {
           get: (defaults, cb) => cb({ ...defaults, ...window.jfLocal }),
           set: (data) => Object.assign((window.jfLocal ||= {}), data)
         },
-        onChanged: { addListener() {} }
+        onChanged: { addListener: (fn) => (window.jfListeners ||= []).push(fn) }
       },
       runtime: { onMessage: { addListener(fn) {
         window.jfExport = (format = "md", limit = 30) => new Promise((r) => fn({ type: "jf-export", limit, format }, null, r));

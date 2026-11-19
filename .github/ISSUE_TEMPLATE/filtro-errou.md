@@ -24,4 +24,4 @@ labels: filtro
 <!-- Ex.: Só vagas, Só tecnologia, localização SP -->
 
 **Versão**
-<!-- Aparece ao lado do nome, no topo do painel (ex.: beta-0.1.1) -->
+<!-- Aparece ao lado do nome, no topo do painel (ex.: beta-0.1.2) -->

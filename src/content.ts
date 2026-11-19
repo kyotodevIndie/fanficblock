@@ -38,6 +38,9 @@ const POST_SELECTOR = [
 const MARKER_TEXTS = ["Feed post", "Publicação no feed", "Post do feed", "Publicación del feed"];
 const MARKER_XPATH =
   "//text()[" + MARKER_TEXTS.map((t) => `normalize-space()='${t}'`).join(" or ") + "]";
+// O título muda com o idioma da conta; o card do post também tem um
+// componentkey que começa com "update-card", em qualquer idioma.
+const CARD_SELECTOR = '[componentkey^="update-card"]';
 
 // Feed antigo: partes do card que não são o post (autor, comentários, botões).
 // No feed novo essas classes não existem e quem separa é o jfSegment.
@@ -76,6 +79,10 @@ function sduiPosts(): Post[] {
     const el = snap.snapshotItem(i)?.parentElement;
     if (el) markers.push(el);
   }
+  for (const card of document.querySelectorAll<Post>(CARD_SELECTOR)) {
+    if (!markers.some((m) => card.contains(m))) markers.push(card.querySelector<Post>("h2") ?? card);
+  }
+  markers.sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
   // Com um post só não dá para saber onde o card termina.
   if (markers.length < 2) return [];
 
@@ -309,6 +316,31 @@ function scan() {
       countHidden(author, body, reason);
     }
   }
+  updateNotice(posts);
+}
+
+// No modo oculto os posts somem sem deixar rastro: um aviso no topo do feed
+// diz quantos foram escondidos e oferece trocar para recolhido.
+let notice: HTMLElement | null = null;
+function updateNotice(posts: Post[]) {
+  const count = settings.enabled && settings.mode === "hide" && onFeed() ? concealed.size : 0;
+  if (!count || !posts.length) {
+    notice?.remove();
+    notice = null;
+    return;
+  }
+  if (!notice) {
+    notice = document.createElement("div");
+    notice.className = "jf-bar jf-notice";
+    notice.innerHTML = '<span></span><button type="button">Mudar para recolhido</button>';
+    notice.querySelector("button")!.addEventListener("click", () => chrome.storage.sync.set({ mode: "collapse" }));
+  }
+  // Só mexe no DOM quando muda: cada mudança dispara outra varredura.
+  const text = `O FanficBlock está ocultando ${count} ${count === 1 ? "post" : "posts"}. Para ver quais, mude para Recolhido.`;
+  const span = notice.querySelector("span")!;
+  if (span.textContent !== text) span.textContent = text;
+  const first = posts[0]._jfExtra ?? posts[0];
+  if (notice.nextElementSibling !== first) first.before(notice);
 }
 
 // Fanficômetro: junta os posts escondidos e grava de tempos em tempos (não

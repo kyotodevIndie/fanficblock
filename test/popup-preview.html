@@ -36,7 +36,7 @@
           set: (data, cb) => { Object.assign(localStore, data); cb && cb(); }
         }
       },
-      runtime: { getManifest: () => ({ version: "0.1.1", version_name: "beta-0.1.1" }) },
+      runtime: { getManifest: () => ({ version: "0.1.2", version_name: "beta-0.1.2" }) },
       tabs: { query: async () => [{ id: 1 }], sendMessage: async () => { throw new Error("prévia"); } }
     };
   <\/script>`;

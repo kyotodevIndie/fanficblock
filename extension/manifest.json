@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "FanficBlock",
-  "version": "0.1.1",
-  "version_name": "beta-0.1.1",
+  "version": "0.1.2",
+  "version_name": "beta-0.1.2",
   "description": "Tira as fanfics corporativas do seu feed do LinkedIn e deixa só o que importa: vaga.",
   "permissions": ["storage"],
   "icons": {

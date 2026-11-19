@@ -114,7 +114,7 @@ export const JF_DEFAULTS: Settings = {
   // Esconde post com link para estes domínios (subdomínios incluídos). Até vaga.
   blockedDomains: [],
   // "hide": some de vez | "collapse": deixa uma barrinha com botão "mostrar"
-  mode: "hide",
+  mode: "collapse",
   // Mostra uma etiqueta em cada post que ficou dizendo por que ele ficou.
   debug: false,
   // Quantas palavras fracas DIFERENTES o post precisa ter para ficar.

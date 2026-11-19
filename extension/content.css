@@ -65,3 +65,9 @@
   color: #a1a1aa;
   font: 11px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
+
+/* Aviso no topo do feed quando o modo oculto está escondendo posts. */
+.jf-notice {
+  border-color: #713f12;
+  color: #fde68a;
+}
