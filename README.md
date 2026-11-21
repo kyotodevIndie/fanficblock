@@ -62,16 +62,14 @@ E a vaga que você queria? Lá embaixo, se tiver sorte.
 
 ## 🚀 Instalar
 
-> Em breve nas lojas. Por enquanto, instale pelo .zip (leva 1 minuto).
+**[Instale grátis na Chrome Web Store](https://chromewebstore.google.com/detail/fanficblock/dbeooclngomfgfncmjdcagalehkgecbl)**, clique em
+**Usar no Chrome** e abra o feed do LinkedIn. Pronto: clique no ícone do
+FanficBlock pra ajustar os filtros.
 
-1. Baixe o **[fanficblock.zip](https://github.com/kyotodevIndie/fanficblock/releases/latest/download/fanficblock.zip)**
-   da última versão e descompacte numa pasta.
-2. Abra `chrome://extensions`.
-3. Ligue o **Modo do desenvolvedor** (canto superior direito).
-4. Clique em **Carregar sem compactação** e escolha a pasta descompactada
-   (a que tem o `manifest.json`).
-5. Abra o feed do LinkedIn. Pronto: clique no ícone do FanficBlock pra
-   ajustar os filtros.
+Prefere sem loja? Baixe o **[fanficblock.zip](https://github.com/kyotodevIndie/fanficblock/releases/latest/download/fanficblock.zip)**, descompacte, abra
+`chrome://extensions`, ligue o **Modo do desenvolvedor** e clique em
+**Carregar sem compactação** escolhendo a pasta (a que tem o
+`manifest.json`).
 
 Quer montar a partir do código? `npm install && npm run build` e carregue a
 pasta `build/` (detalhes no [guia de contribuição](CONTRIBUTING.md)).
